@@ -1,3 +1,4 @@
+# adapted from https://itnext.io/build-a-zerg-bot-with-pysc2-2-0-295375d2f58e
 from pysc2.agents import base_agent
 from pysc2.env import sc2_env
 from pysc2.lib import actions, features
@@ -16,7 +17,7 @@ def main(unused_argv):
     try:
         while True:
             with sc2_env.SC2Env(
-                    map_name="AbyssalReef",
+                    map_name="Flat32",
                     players=[sc2_env.Agent(sc2_env.Race.zerg),
                              sc2_env.Bot(sc2_env.Race.random,
                                          sc2_env.Difficulty.very_easy)],
