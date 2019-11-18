@@ -62,10 +62,13 @@ class NN(nn.Module):
 class ToyData(Dataset):
 
     def __init__(self, transform=None):
-        self.data = [np.ones(10) * i for i in range(5) for _ in range(1000)]
-        self.labels = [i for i in range(5) for _ in range(1000)]
-
+        self.data = np.array([np.ones(10) * i for i in range(5) for _ in range(1000)])
+        self.labels = np.array([i for i in range(5) for _ in range(1000)])
         self.transform = transform
+        self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+        if self.transform:
+            self.data = self.transform(self.data).to(self.device)
+            self.label = self.transform(self.labels).to(self.device)
 
     def __len__(self):
         return len(self.data)
@@ -78,7 +81,9 @@ class ToyData(Dataset):
         label = self.labels[idx]
         # sample = {'x': x, 'y': y}
         if self.transform:
-            sample = self.transform(sample)
+            # sample = self.transform(sample).to(self.device)
+            # label = self.transform(label).to(self.device)
+            pass
 
         return sample, label
 
@@ -105,6 +110,7 @@ if __name__ == '__main__':
 
     # Setting up net:
     net = NN(10).double()
+    net.cuda()
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.SGD(net.parameters(), lr=0.001, momentum=0.9)
 
@@ -115,6 +121,7 @@ if __name__ == '__main__':
         for i, data in enumerate(trainloader, 0):
             # get the inputs; data is a list of [inputs, labels]
             inputs, labels = data
+            labels = labels.to(device)
 
             # zero the parameter gradients
             optimizer.zero_grad()
