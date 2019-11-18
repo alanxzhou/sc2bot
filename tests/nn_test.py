@@ -90,6 +90,7 @@ class ToTensor(object):
 
 
 if __name__ == '__main__':
+    batch_size = 16
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     # Assuming that we are on a CUDA machine, this should print a CUDA device:
     print(device)
@@ -97,7 +98,7 @@ if __name__ == '__main__':
     # Loading in Data:
     classes = np.arange(0, 5)
     toy = ToyData(transform=ToTensor())
-    trainloader = DataLoader(toy, batch_size=16, shuffle=True)
+    trainloader = DataLoader(toy, batch_size=batch_size, shuffle=True)
     # for i_batch, sample_batched in enumerate(trainloader):
     #     print(i_batch, sample_batched)
     #     break
@@ -134,16 +135,16 @@ if __name__ == '__main__':
     print('Finished Training')
 
     # Now we evaluate
-    testloader = DataLoader(toy, batch_size=16, shuffle=False)
-    class_correct = list(0. for i in range(10))
-    class_total = list(0. for i in range(10))
+    testloader = DataLoader(toy, batch_size=batch_size, shuffle=False)
+    class_correct = list(0. for i in range(len(classes)))
+    class_total = list(0. for i in range(len(classes)))
     with torch.no_grad():
         for data in testloader:
             inputs, labels = data
             outputs = net(inputs)
             _, predicted = torch.max(outputs, 1)
             c = (predicted == labels).squeeze()
-            for i in range(4):
+            for i in range(len(c)):
                 label = labels[i]
                 class_correct[label] += c[i].item()
                 class_total[label] += 1

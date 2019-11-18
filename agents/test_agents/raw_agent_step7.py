@@ -96,8 +96,9 @@ def main(unused_argv):
                     agent_interface_format=features.AgentInterfaceFormat(
                         action_space=actions.ActionSpace.RAW,
                         use_raw_units=True,
-                        raw_resolution=64,
+                        raw_resolution=None,
                     ),
+                    disable_fog=True
             ) as env:
                 run_loop.run_loop([agent], env)
     except KeyboardInterrupt:
