@@ -50,7 +50,7 @@ def run_thread(map_name, visualize):
             step_mul=FLAGS.step_mul,
             game_steps_per_episode=FLAGS.game_steps_per_episode,
             agent_interface_format=features.AgentInterfaceFormat(
-                feature_dimensions=features.Dimensions(screen=32, minimap=32)),
+                feature_dimensions=features.Dimensions(screen=64, minimap=32)),
             visualize=visualize) as env:
         env = available_actions_printer.AvailableActionsPrinter(env)
         agent = Agent()

@@ -3,7 +3,7 @@ import torch.nn as nn
 import torch.optim as optim
 import torch.nn.functional as F
 from torch.autograd import Variable
-
+from torchvision.models import squeezenet1_1
 
 class BeaconCNN(nn.Module):
     """
@@ -22,3 +22,9 @@ class BeaconCNN(nn.Module):
         # x = F.relu(self.conv3(x))
         x = self.conv3(x)
         return x
+
+
+if __name__ == '__main__':
+    model = squeezenet1_1(pretrained=True)
+    for param_tensor in model.state_dict():
+        print(param_tensor, '\t', model.state_dict()[param_tensor].size())

@@ -65,7 +65,7 @@ class BaseBeaconAgent(BaseAgent):
         self._screen = None
         self._fig = plt.figure()
         self._plot = [plt.subplot(2, 2, i+1) for i in range(4)]
-        self._screen_size = 32
+        self._screen_size = 64
 
     def get_env_action(self, action, obs):
         action = np.unravel_index(action, [1, self._screen_size, self._screen_size])
