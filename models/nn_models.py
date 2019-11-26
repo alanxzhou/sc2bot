@@ -5,6 +5,7 @@ import torch.nn.functional as F
 from torch.autograd import Variable
 from torchvision.models import squeezenet1_1
 
+
 class BeaconCNN(nn.Module):
     """
     NN model specifically for beacon mini game
@@ -24,7 +25,9 @@ class BeaconCNN(nn.Module):
         return x
 
 
-if __name__ == '__main__':
-    model = squeezenet1_1(pretrained=True)
-    for param_tensor in model.state_dict():
-        print(param_tensor, '\t', model.state_dict()[param_tensor].size())
+# if __name__ == '__main__':
+#     model = squeezenet1_1(pretrained=True)
+#     for param_tensor in model.state_dict():
+#         print(param_tensor, '\t', model.state_dict()[param_tensor].size())
+#
+#     pass

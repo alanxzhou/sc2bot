@@ -14,6 +14,7 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 from torch.autograd import Variable
+from torch import Tensor
 
 from models.nn_models import BeaconCNN
 from utils.epsilon import Epsilon
@@ -21,7 +22,7 @@ from utils.replay_memory import ReplayMemory, Transition
 
 from pysc2.lib import actions
 from pysc2.lib import features
-
+import pickle
 
 _PLAYER_RELATIVE = features.SCREEN_FEATURES.player_relative.index
 _PLAYER_FRIENDLY = 1
@@ -48,7 +49,7 @@ class BaseBeaconAgent(BaseAgent):
         self.steps_before_training = 10000
         self.target_q_update_frequency = 10000
 
-        self._Q_weights_path = "./data/SC2QAgent"
+        self._Q_weights_path = "./data/test.pth"
         self._Q = BeaconCNN()
         if os.path.isfile(self._Q_weights_path):
             self._Q.load_state_dict(torch.load(self._Q_weights_path))
@@ -59,12 +60,14 @@ class BaseBeaconAgent(BaseAgent):
         self._criterion = nn.MSELoss()
         self._memory = ReplayMemory(50000)
 
-        self._loss = deque(maxlen=1000)
-        self._max_q = deque(maxlen=1000)
+        # self._loss = deque(maxlen=1000)
+        # self._max_q = deque(maxlen=1000)
+        self._loss = []
+        self._max_q = []
         self._action = None
         self._screen = None
         self._fig = plt.figure()
-        self._plot = [plt.subplot(2, 2, i+1) for i in range(4)]
+        self._plot = [plt.subplot(2, 2, i + 1) for i in range(4)]
         self._screen_size = 64
 
     def get_env_action(self, action, obs):
@@ -85,9 +88,10 @@ class BaseBeaconAgent(BaseAgent):
         # greedy
         if np.random.rand() > self._epsilon.value():
             # print("greedy action")
-            s = Variable(torch.from_numpy(s).cuda())
+            s = torch.from_numpy(s).cuda()
             s = s.unsqueeze(0).float()
-            self._action = self._Q(s).squeeze().cpu().data.numpy()
+            with torch.no_grad():
+                self._action = self._Q(s).squeeze().cpu().data.numpy()
             return self._action.argmax()
         # explore
         else:
@@ -104,78 +108,86 @@ class BaseBeaconAgent(BaseAgent):
         target = [int(friendly_x.mean()), int(friendly_y.mean())]
         return actions.FunctionCall(_SELECT_POINT, [[0], target])
 
-    def train(self, env, training=True):
+    def train(self, env, training=True, max_episodes=10000, save_name=None):
         self._epsilon.isTraining = training
-        self.run_loop(env, self.max_frames)
+        self.run_loop(env, self.max_frames, max_episodes=max_episodes)
         if self._epsilon.isTraining:
-            torch.save(self._Q.state_dict(), self._Q_weights_path)
+            if save_name:
+                torch.save(self._Q.state_dict(), save_name)
+            else:
+                torch.save(self._Q.state_dict(), self._Q_weights_path)
+            pickle.dump(self._loss, open('loss.pkl', 'wb'))
+            pickle.dump(self._max_q, open('max_q.pkl', 'wb'))
 
-    def run_loop(self, env, max_frames=0):
+    def run_loop(self, env, max_frames=0, max_episodes=10000):
         """A run loop to have agents and an environment interact."""
         total_frames = 0
         start_time = time.time()
 
         action_spec = env.action_spec()
         observation_spec = env.observation_spec()
+        n_episodes = 0
 
         self.setup(observation_spec, action_spec)
 
         try:
-          while True:
-            obs = env.reset()[0]
-            # remove unit selection from the equation by selecting the friendly on every new game.
-            select_friendly = self.select_friendly_action(obs)
-            obs = env.step([select_friendly])[0]
-            # distance = self.get_reward(obs.observation["screen"])
+            while n_episodes < max_episodes:
 
-            self.reset()
+                obs = env.reset()[0]
+                # remove unit selection from the equation by selecting the friendly on every new game.
+                select_friendly = self.select_friendly_action(obs)
+                obs = env.step([select_friendly])[0]
+                # distance = self.get_reward(obs.observation["screen"])
 
-            while True:
-              total_frames += 1
+                self.reset()
 
-              self._screen = obs.observation["feature_screen"][5]
-              s = np.expand_dims(obs.observation["feature_screen"][5], 0)
-              # plt.imshow(s[5])
-              # plt.pause(0.00001)
-              if max_frames and total_frames >= max_frames:
-                print("max frames reached")
-                return
-              if obs.last():
-                print("total frames:", total_frames, "Epsilon:", self._epsilon.value())
-                self._epsilon.increment()
-                break
+                while True:
+                    total_frames += 1
 
-              action = self.get_action(s)
-              env_actions = self.get_env_action(action, obs)
-              obs = env.step([env_actions])[0]
+                    self._screen = obs.observation["feature_screen"][5]
+                    s = np.expand_dims(obs.observation["feature_screen"][5], 0)
+                    # plt.imshow(s[5])
+                    # plt.pause(0.00001)
+                    if max_frames and total_frames >= max_frames:
+                        print("max frames reached")
+                        return
+                    if obs.last():
+                        print(f"Episode {n_episodes + 1}:\t total frames: {total_frames} Epsilon: {self._epsilon.value()}")
+                        self._epsilon.increment()
+                        break
 
-              r = obs.reward
-              s1 = np.expand_dims(obs.observation["feature_screen"][5], 0)
-              done = r > 0
-              if self._epsilon.isTraining:
-                transition = Transition(s, action, s1, r, done)
-                self._memory.push(transition)
+                    action = self.get_action(s)
+                    env_actions = self.get_env_action(action, obs)
+                    obs = env.step([env_actions])[0]
 
-              if total_frames % self.train_q_per_step == 0 and total_frames > self.steps_before_training and self._epsilon.isTraining:
-                self.train_q()
-                # pass
+                    r = obs.reward
+                    s1 = np.expand_dims(obs.observation["feature_screen"][5], 0)
+                    done = r > 0
+                    if self._epsilon.isTraining:
+                        transition = Transition(s, action, s1, r, done)
+                        self._memory.push(transition)
 
-              if total_frames % self.target_q_update_frequency == 0 and total_frames > self.steps_before_training and self._epsilon.isTraining:
-                self._Qt = copy.deepcopy(self._Q)
-                #self.show_chart()
-                # pass
+                    if total_frames % self.train_q_per_step == 0 and total_frames > self.steps_before_training and self._epsilon.isTraining:
+                        self.train_q()
+                        # pass
 
-              if not self._epsilon.isTraining and total_frames % 3 == 0:
-                #self.show_chart()
-                a = 1
+                    if total_frames % self.target_q_update_frequency == 0 and total_frames > self.steps_before_training and self._epsilon.isTraining:
+                        self._Qt = copy.deepcopy(self._Q)
+                        # self.show_chart()
+                        # pass
+
+                    if not self._epsilon.isTraining and total_frames % 3 == 0:
+                        # self.show_chart()
+                        a = 1
+                n_episodes += 1
 
         except KeyboardInterrupt:
-          pass
+            pass
         finally:
-          print("finished")
-          elapsed_time = time.time() - start_time
-          print("Took %.3f seconds for %s steps: %.3f fps" % (
-              elapsed_time, total_frames, total_frames / elapsed_time))
+            print("finished")
+            elapsed_time = time.time() - start_time
+            print("Took %.3f seconds for %s steps: %.3f fps" % (
+                elapsed_time, total_frames, total_frames / elapsed_time))
 
     @staticmethod
     def get_reward(s):
@@ -183,11 +195,11 @@ class BaseBeaconAgent(BaseAgent):
         neutral_y, neutral_x = (player_relative == _PLAYER_NEUTRAL).nonzero()
         neutral_target = [int(neutral_x.mean()), int(neutral_y.mean())]
         friendly_y, friendly_x = (player_relative == _PLAYER_FRIENDLY).nonzero()
-        if len(friendly_y) == 0 or len(friendly_x) == 0:   # this is shit
+        if len(friendly_y) == 0 or len(friendly_x) == 0:  # this is shit
             return 0
         friendly_target = [int(friendly_x.mean()), int(friendly_y.mean())]
 
-        distance_2 = (neutral_target[0]-friendly_target[0])**2 + (neutral_target[1]-friendly_target[1])**2
+        distance_2 = (neutral_target[0] - friendly_target[0]) ** 2 + (neutral_target[1] - friendly_target[1]) ** 2
         distance = np.sqrt(distance_2)
         return -distance
 
@@ -202,13 +214,13 @@ class BaseBeaconAgent(BaseAgent):
         self._plot[1].set_ylabel('Max Q')
         self._plot[1].plot(list(self._max_q))
 
-        self._plot[2].clear()
-        self._plot[2].set_title("screen")
-        self._plot[2].imshow(self._screen)
+        # self._plot[2].clear()
+        # self._plot[2].set_title("screen")
+        # self._plot[2].imshow(self._screen)
 
-        self._plot[3].clear()
-        self._plot[3].set_title("action")
-        self._plot[3].imshow(self._action)
+        # self._plot[3].clear()
+        # self._plot[3].set_title("action")
+        # self._plot[3].imshow(self._action)
         plt.pause(0.00001)
 
     def train_q(self):
@@ -216,11 +228,11 @@ class BaseBeaconAgent(BaseAgent):
             return
 
         s, a, s_1, r, done = self._memory.sample(self.train_q_batch_size)
-        s = Variable(torch.from_numpy(s).cuda()).float()
-        a = Variable(torch.from_numpy(a).cuda()).long().unsqueeze(1)
-        s_1 = Variable(torch.from_numpy(s_1).cuda(), volatile=True).float()
-        r = Variable(torch.from_numpy(r).cuda()).float()
-        done = Variable(torch.from_numpy(1 - done).cuda()).float()
+        s = torch.from_numpy(s).cuda().float()
+        a = torch.from_numpy(a).cuda().long().unsqueeze(1)
+        s_1 = torch.from_numpy(s_1).cuda().float()
+        r = torch.from_numpy(r).cuda().float()
+        done = torch.from_numpy(1 - done).cuda().float()
 
         # Q_sa = r + gamma * max(Q_s'a')
         Q = self._Q(s)
@@ -235,12 +247,12 @@ class BaseBeaconAgent(BaseAgent):
         # Q
         # y = r + done * self.gamma * Qt.max(dim=1)[0].unsqueeze(1)
 
-        y.volatile = False
-
+        # y.volatile = False
+        # with y.no_grad():
         loss = self._criterion(Q, y)
         self._loss.append(loss.sum().cpu().data.numpy())
         self._max_q.append(Q.max().cpu().data.numpy().reshape(-1)[0])
-        self._optimizer.zero_grad()   # zero the gradient buffers
+        self._optimizer.zero_grad()  # zero the gradient buffers
         loss.backward()
         self._optimizer.step()
 
@@ -252,7 +264,7 @@ class BeaconAgent(BaseBeaconAgent):
 
         player_relative = obs.observation["feature_screen"][_PLAYER_RELATIVE]
         if _MOVE_SCREEN in obs.observation["available_actions"]:
-        # return actions.FunctionCall(_NO_OP, [])
+            # return actions.FunctionCall(_NO_OP, [])
             neutral_y, neutral_x = (player_relative == _PLAYER_NEUTRAL).nonzero()
             if not neutral_y.any():
                 return actions.FunctionCall(_NO_OP, [])

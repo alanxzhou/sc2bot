@@ -9,6 +9,7 @@ from pysc2.lib import stopwatch, features
 
 from absl import app
 from absl import flags
+import torch
 
 # from pytorch.sc2_agents.base_rl_agent import BaseRLAgent as Agent
 from agents.beacon_agent import BeaconAgent as Agent
@@ -56,7 +57,7 @@ def run_thread(map_name, visualize):
         agent = Agent()
         # run_loop([agent], env, FLAGS.max_agent_steps)
         # agent.train(env, FLAGS.train)
-        agent.train(env, True)
+        agent.train(env, True, max_episodes=10000, save_name='./data/beacon_10000_6432dim')
         if FLAGS.save_replay:
             env.save_replay(Agent.__name__)
 
