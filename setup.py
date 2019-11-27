@@ -8,4 +8,4 @@ setup(name='sc2bot',
       author_email='alan.xiang.zhou@gmail.com',
       license='General Public License',
       packages=[],
-      zip_safe=False, install_requires=['absl', 'pysc2', 'numpy', 'matplotlib', 'torch'])
+      zip_safe=False, install_requires=['pysc2', 'numpy', 'matplotlib', 'torch'])

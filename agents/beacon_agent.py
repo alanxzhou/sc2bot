@@ -60,10 +60,10 @@ class BaseBeaconAgent(BaseAgent):
         self._criterion = nn.MSELoss()
         self._memory = ReplayMemory(50000)
 
-        # self._loss = deque(maxlen=1000)
-        # self._max_q = deque(maxlen=1000)
-        self._loss = []
-        self._max_q = []
+        self._loss = deque(maxlen=1000)
+        self._max_q = deque(maxlen=1000)
+        self.loss = []
+        self.max_q = []
         self._action = None
         self._screen = None
         self._fig = plt.figure()
@@ -116,8 +116,8 @@ class BaseBeaconAgent(BaseAgent):
                 torch.save(self._Q.state_dict(), save_name)
             else:
                 torch.save(self._Q.state_dict(), self._Q_weights_path)
-            pickle.dump(self._loss, open('loss.pkl', 'wb'))
-            pickle.dump(self._max_q, open('max_q.pkl', 'wb'))
+            pickle.dump(self._loss, open(r'./data/beacon_2000_6432_loss.pkl', 'wb'))
+            pickle.dump(self._max_q, open(r'./data/beacon_2000_6432_max_q.pkl', 'wb'))
 
     def run_loop(self, env, max_frames=0, max_episodes=10000):
         """A run loop to have agents and an environment interact."""
@@ -180,6 +180,9 @@ class BaseBeaconAgent(BaseAgent):
                         # self.show_chart()
                         a = 1
                 n_episodes += 1
+                if len(self._loss) > 0:
+                    self.loss.append(self._loss[-1])
+                    self.max_q.append(self._max_q[-1])
 
         except KeyboardInterrupt:
             pass
