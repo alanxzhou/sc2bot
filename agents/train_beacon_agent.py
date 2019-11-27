@@ -57,9 +57,10 @@ def run_thread(map_name, visualize):
         agent = Agent()
         # run_loop([agent], env, FLAGS.max_agent_steps)
         # agent.train(env, FLAGS.train)
-        agent.train(env, True, max_episodes=10000, save_name='./data/beacon_10000_6432dim')
+        agent.train(env, True, max_episodes=2000, save_name='./data/beacon_2000_6432dim')
         if FLAGS.save_replay:
             env.save_replay(Agent.__name__)
+
 
 def main(unused_argv):
     """Run an agent."""
