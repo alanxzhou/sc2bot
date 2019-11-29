@@ -12,7 +12,7 @@ import torch.optim as optim
 
 from sc2bot.models.nn_models import BeaconCNN
 from sc2bot.utils.epsilon import Epsilon
-from sc2bot.utils import ReplayMemory, Transition
+from sc2bot.utils.replay_memory import ReplayMemory, Transition
 
 from pysc2.lib import actions
 from pysc2.lib import features
