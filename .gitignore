@@ -1,3 +1,11 @@
 /.idea/
 /pytorch/
 *.xml
+sc2bot.egg-info/top_level.txt
+sc2bot.egg-info/SOURCES.txt
+sc2bot.egg-info/requires.txt
+sc2bot.egg-info/PKG-INFO
+sc2bot.egg-info/not-zip-safe
+sc2bot.egg-info/dependency_links.txt
+dist/sc2bot-0.1-py3.7.egg
+build/lib/sc2bot/__init__.py
