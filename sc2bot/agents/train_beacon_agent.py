@@ -1,18 +1,14 @@
-import threading
-import time
-
 from pysc2 import maps
 from pysc2.env import available_actions_printer
 # from pysc2.env import run_loop
 from pysc2.env import sc2_env
-from pysc2.lib import stopwatch, features
+from pysc2.lib import features
 
 from absl import app
 from absl import flags
-import torch
 
 # from pytorch.sc2_agents.base_rl_agent import BaseRLAgent as Agent
-from agents.beacon_agent import BeaconAgent as Agent
+from sc2bot.agents import BeaconAgent as Agent
 
 FLAGS = flags.FLAGS
 flags.DEFINE_bool("render", False, "Whether to render with pygame.")

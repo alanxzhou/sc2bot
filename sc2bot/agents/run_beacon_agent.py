@@ -18,7 +18,6 @@
 # from __future__ import division
 # from __future__ import print_function
 
-import importlib
 import threading
 import time
 from future.builtins import range  # pylint: disable=redefined-builtin
@@ -27,12 +26,12 @@ from pysc2 import maps
 from pysc2.env import available_actions_printer
 # from pysc2.env import run_loop
 from pysc2.env import sc2_env
-from pysc2.lib import stopwatch, features
+from pysc2.lib import features
 
 from absl import app
 from absl import flags
 
-from agents.beacon_agent import BeaconAgent as Agent
+from sc2bot.agents import BeaconAgent as Agent
 
 
 FLAGS = flags.FLAGS

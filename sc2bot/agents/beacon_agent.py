@@ -1,24 +1,18 @@
 import copy
-import random
 import matplotlib.pyplot as plt
 import numpy as np
 import os
 import time
-from absl import app
 from collections import deque
 from pysc2.agents.base_agent import BaseAgent
-from pysc2.lib import actions, features, units
-from pysc2.env import sc2_env, run_loop
 
 import torch
 import torch.nn as nn
 import torch.optim as optim
-from torch.autograd import Variable
-from torch import Tensor
 
-from models.nn_models import BeaconCNN
-from utils.epsilon import Epsilon
-from utils.replay_memory import ReplayMemory, Transition
+from sc2bot.models.nn_models import BeaconCNN
+from sc2bot.utils.epsilon import Epsilon
+from sc2bot.utils import ReplayMemory, Transition
 
 from pysc2.lib import actions
 from pysc2.lib import features

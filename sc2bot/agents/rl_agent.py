@@ -1,18 +1,14 @@
 import copy
-import numpy as np
 import os
-import time
 from collections import deque
 
 from pysc2.agents.base_agent import BaseAgent
-import models.nn_models
-from utils.epsilon import Epsilon
-from utils.replay_memory import ReplayMemory, Transition
+from sc2bot.utils.epsilon import Epsilon
+from sc2bot.utils import ReplayMemory
 
 import torch
 import torch.nn as nn
 import torch.optim as optim
-from torch.autograd import Variable
 
 
 class BaseRLAgent(BaseAgent):
