@@ -7,5 +7,5 @@ setup(name='sc2bot',
       author='Alan Zhou',
       author_email='alan.xiang.zhou@gmail.com',
       license='General Public License',
-      packages=[],
+      packages=['sc2bot'],
       zip_safe=False, install_requires=['pysc2', 'numpy', 'matplotlib', 'torch'])
