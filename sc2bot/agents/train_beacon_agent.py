@@ -13,9 +13,9 @@ from sc2bot.agents.beacon_agent import BeaconAgent as Agent
 FLAGS = flags.FLAGS
 flags.DEFINE_bool("render", False, "Whether to render with pygame.")
 flags.DEFINE_bool("train", False, "Whether we are training or running")
-flags.DEFINE_integer("screen_resolution", 28,
+flags.DEFINE_integer("screen_resolution", 64,
                      "Resolution for screen feature layers.")
-flags.DEFINE_integer("minimap_resolution", 64,
+flags.DEFINE_integer("minimap_resolution", 32,
                      "Resolution for minimap feature layers.")
 
 # flags.DEFINE_integer("max_agent_steps", 2500, "Total agent steps.")
@@ -34,6 +34,8 @@ flags.DEFINE_integer("parallel", 1, "How many instances to run in parallel.")
 
 flags.DEFINE_bool("save_replay", False, "Whether to save a replay at the end.")
 
+flags.DEFINE_integer("max_episodes", 5000, "Maximum number of episodes to train on")
+
 flags.DEFINE_string("map", "MoveToBeacon", "Name of a map to use.")
 flags.mark_flag_as_required("map")
 
@@ -47,13 +49,15 @@ def run_thread(map_name, visualize):
             step_mul=FLAGS.step_mul,
             game_steps_per_episode=FLAGS.game_steps_per_episode,
             agent_interface_format=features.AgentInterfaceFormat(
-                feature_dimensions=features.Dimensions(screen=64, minimap=32)),
+                feature_dimensions=features.Dimensions(screen=FLAGS.screen_resolution,
+                                                       minimap=FLAGS.minimap_resolution)),
             visualize=visualize) as env:
         env = available_actions_printer.AvailableActionsPrinter(env)
         agent = Agent()
         # run_loop([agent], env, FLAGS.max_agent_steps)
         # agent.train(env, FLAGS.train)
-        agent.train(env, True, max_episodes=2000, save_name='./data/beacon_2000_6432dim')
+        agent.train(env, True,  max_episodes=FLAGS.max_episodes,
+                    save_name=f'./data/beacon_{FLAGS.max_episodes}_{FLAGS.screen_resolution}{FLAGS.minimap_resolution}.pth')
         if FLAGS.save_replay:
             env.save_replay(Agent.__name__)
 
