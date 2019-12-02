@@ -174,20 +174,6 @@ class BaseRLAgent(BaseAgent):
             print("Took %.3f seconds for %s steps: %.3f fps" % (
                 elapsed_time, total_frames, total_frames / elapsed_time))
 
-    @staticmethod
-    def get_reward(s):
-        player_relative = s[_PLAYER_RELATIVE]
-        neutral_y, neutral_x = (player_relative == _PLAYER_NEUTRAL).nonzero()
-        neutral_target = [int(neutral_x.mean()), int(neutral_y.mean())]
-        friendly_y, friendly_x = (player_relative == _PLAYER_FRIENDLY).nonzero()
-        if len(friendly_y) == 0 or len(friendly_x) == 0:  # this is shit
-            return 0
-        friendly_target = [int(friendly_x.mean()), int(friendly_y.mean())]
-
-        distance_2 = (neutral_target[0] - friendly_target[0]) ** 2 + (neutral_target[1] - friendly_target[1]) ** 2
-        distance = np.sqrt(distance_2)
-        return -distance
-
     def train_q(self):
         if self.train_q_batch_size >= len(self._memory):
             return
@@ -208,7 +194,6 @@ class BaseRLAgent(BaseAgent):
         # double Q
         best_action = self._Q(s_1).view(self.train_q_batch_size, -1).max(dim=1, keepdim=True)[1]
         y = r + done * self.gamma * Qt.gather(1, best_action)
-        # Q
         # y = r + done * self.gamma * Qt.max(dim=1)[0].unsqueeze(1)
 
         # y.volatile = False
