@@ -53,7 +53,7 @@ class BaseRLAgent(BaseAgent):
         self._Qt.cuda()
         self._optimizer = optim.Adam(self._Q.parameters(), lr=1e-8)
         self._criterion = nn.MSELoss()
-        self._memory = ReplayMemory(50000)
+        self._memory = ReplayMemory(int(250000))
 
         self._loss = deque(maxlen=1000)
         self._max_q = deque(maxlen=1000)
@@ -101,11 +101,11 @@ class BaseRLAgent(BaseAgent):
         self.run_loop(env, self.max_frames, max_episodes=max_episodes)
         if self._epsilon.isTraining:
             if save_name:
-                torch.save(self._Q.state_dict(), save_name)
+                torch.save(self._Q.state_dict(), save_name + '.pth')
             else:
                 torch.save(self._Q.state_dict(), self._Q_weights_path)
-            pickle.dump(self._loss, open(r'./data/beacon_2000_6432_loss.pkl', 'wb'))
-            pickle.dump(self._max_q, open(r'./data/beacon_2000_6432_max_q.pkl', 'wb'))
+            pickle.dump(self._loss, open(f'{save_name}_loss.pkl', 'wb'))
+            pickle.dump(self._max_q, open(f'{save_name}max_q.pkl', 'wb'))
 
     def run_loop(self, env, max_frames=0, max_episodes=10000):
         """A run loop to have agents and an environment interact."""

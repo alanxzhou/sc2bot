@@ -1,3 +1,5 @@
+import numpy as np
+
 import torch
 import torch.nn as nn
 import torch.optim as optim
@@ -30,4 +32,7 @@ if __name__ == '__main__':
     for param_tensor in model.state_dict():
         print(param_tensor, '\t', model.state_dict()[param_tensor].size())
 
+    x = torch.tensor(np.random.random((64, 1, 1, 1)))
+    b = BeaconCNN()
+    print(b(x.float()).squeeze().shape)
     pass

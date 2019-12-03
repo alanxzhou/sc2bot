@@ -54,7 +54,7 @@ def run_thread(map_name, visualize):
         # run_loop([agent], env, FLAGS.max_agent_steps)
         # agent.train(env, FLAGS.train)
         agent.train(env, FLAGS.train,  max_episodes=FLAGS.max_episodes,
-                    save_name=f'./data/{FLAGS.map}_{FLAGS.max_episodes}_{FLAGS.screen_resolution}{FLAGS.minimap_resolution}.pth')
+                    save_name=f'./data/{FLAGS.map}_{FLAGS.max_episodes}_{FLAGS.screen_resolution}{FLAGS.minimap_resolution}')
         if FLAGS.save_replay:
             env.save_replay(Agent.__name__)
 
