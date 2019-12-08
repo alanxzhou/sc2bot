@@ -2,12 +2,13 @@ from pysc2 import maps
 from pysc2.env import available_actions_printer
 # from pysc2.env import run_loop
 from pysc2.env import sc2_env
-from pysc2.lib import features
+from pysc2.lib import actions, features, units
 
 from absl import app
 from absl import flags
 
-from sc2bot.agents.rl_agent import BaseRLAgent as Agent
+# from sc2bot.agents.rl_agent import BaseRLAgent as Agent
+from sc2bot.agents.battle_agent import BattleAgentTotal as Agent
 
 FLAGS = flags.FLAGS
 flags.DEFINE_bool("render", False, "Whether to render with pygame.")
@@ -33,7 +34,8 @@ flags.DEFINE_integer("parallel", 1, "How many instances to run in parallel.")
 flags.DEFINE_bool("save_replay", False, "Whether to save a replay at the end.")
 
 flags.DEFINE_integer("max_episodes", 1000, "Maximum number of episodes to train on")
-flags.DEFINE_string("map", "MoveToBeacon", "Name of a map to use.")
+# flags.DEFINE_string("map", "MoveToBeacon", "Name of a map to use.")
+flags.DEFINE_string("map", "DefeatZerglingsAndBanelings", "Name of a map to use.")
 flags.mark_flag_as_required("map")
 
 

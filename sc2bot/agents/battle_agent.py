@@ -13,6 +13,7 @@ from pysc2.lib import features
 from sc2bot.utils.epsilon import Epsilon
 from sc2bot.utils.replay_memory import ReplayMemory, Transition
 from sc2bot.models.nn_models import BeaconCNN
+from sc2bot.agents.rl_agent import BaseRLAgent
 
 import torch
 import torch.nn as nn
@@ -29,3 +30,110 @@ _SELECT_ARMY = actions.FUNCTIONS.select_army.id
 _NOT_QUEUED = [0]
 _SELECT_ALL = [0]
 _SELECT_POINT = actions.FUNCTIONS.select_point.id
+
+_UNIT_TYPE = 6
+_UNIT_HIT_POINTS = 8
+# [{'height_map': 0,
+#   'visibility_map': 1,
+#   'creep': 2,
+#   'power': 3,
+#   'player_id': 4,
+#   'player_relative': 5,
+#   'unit_type': 6,
+#   'selected': 7,
+#   'unit_hit_points': 8,
+#   'unit_hit_points_ratio': 9,
+#   'unit_energy': 10,
+#   'unit_energy_ratio': 11,
+#   'unit_shields': 12,
+#   'unit_shields_ratio': 13,
+#   'unit_density': 14,
+#   'unit_density_aa': 15,
+#   'effects': 16,
+#   'hallucinations': 17,
+#   'cloaked': 18,
+#   'blip': 19,
+#   'buffs': 20,
+#   'buff_duration': 21,
+#   'active': 22,
+#   'build_progress': 23,
+#   'pathable': 24,
+#   'buildable': 25,
+#   'placeholder': 26},
+#  None,
+#  None]
+
+class BattleAgentTotal(BaseRLAgent):
+    """
+    Agent where the entire army is selected
+    """
+
+    def __init__(self):
+        super(BattleAgentTotal, self).__init__()
+        self.initialize_model(BeaconCNN())
+
+    def run_loop(self, env, max_frames=0, max_episodes=10000):
+        """A run loop to have agents and an environment interact."""
+        total_frames = 0
+        start_time = time.time()
+
+        action_spec = env.action_spec()
+        observation_spec = env.observation_spec()
+        n_episodes = 0
+
+        self.setup(observation_spec, action_spec)
+        try:
+            while n_episodes < max_episodes:
+
+                obs = env.reset()[0]
+                # remove unit selection from the equation by selecting the entire army on every new game.
+                select_army = actions.FunctionCall(_SELECT_ARMY, [[False]])
+                obs = env.step([select_army])[0]
+
+                self.reset()
+
+                while True:
+                    total_frames += 1
+
+                    screen_observations = obs.observation["feature_screen"][[_UNIT_TYPE, _UNIT_HIT_POINTS]]
+                    s = np.expand_dims(screen_observations, 0)
+
+                    if max_frames and total_frames >= max_frames:
+                        print("max frames reached")
+                        return
+                    if obs.last():
+                        print(f"Episode {n_episodes + 1}:\t total frames: {total_frames} Epsilon: {self._epsilon.value()}")
+                        self._epsilon.increment()
+                        break
+
+                    action = self.get_action(s)
+                    env_actions = self.get_env_action(action, obs)
+                    obs = env.step([env_actions])[0]
+
+                    r = obs.reward
+                    s1 = np.expand_dims(obs.observation["feature_screen"][_UNIT_TYPE, _UNIT_HIT_POINTS], 0)
+                    done = r > 0
+                    if self._epsilon.isTraining:
+                        transition = Transition(s, action, s1, r, done)
+                        self._memory.push(transition)
+
+                    if total_frames % self.train_q_per_step == 0 and total_frames > self.steps_before_training and self._epsilon.isTraining:
+                        self.train_q()
+
+                    if total_frames % self.target_q_update_frequency == 0 and total_frames > self.steps_before_training and self._epsilon.isTraining:
+                        self._Qt = copy.deepcopy(self._Q)
+
+                    if not self._epsilon.isTraining and total_frames % 3 == 0:
+                        a = 1
+                n_episodes += 1
+                if len(self._loss) > 0:
+                    self.loss.append(self._loss[-1])
+                    self.max_q.append(self._max_q[-1])
+
+        except KeyboardInterrupt:
+            pass
+        finally:
+            print("finished")
+            elapsed_time = time.time() - start_time
+            print("Took %.3f seconds for %s steps: %.3f fps" % (
+                elapsed_time, total_frames, total_frames / elapsed_time))

@@ -15,6 +15,7 @@ from sc2bot.models.nn_models import BeaconCNN
 from sc2bot.utils.epsilon import Epsilon
 from sc2bot.utils.replay_memory import ReplayMemory, Transition
 
+from pysc2.env import available_actions_printer
 from pysc2.lib import actions
 from pysc2.lib import features
 import pickle
@@ -37,22 +38,6 @@ class BeaconAgent(BaseRLAgent):
     def __init__(self):
         super(BeaconAgent, self).__init__()
         self.initialize_model(BeaconCNN())
-
-    def step(self, obs):
-        super(BeaconAgent, self).step(obs)
-
-        player_relative = obs.observation["feature_screen"][_PLAYER_RELATIVE]
-        if _MOVE_SCREEN in obs.observation["available_actions"]:
-            # return actions.FunctionCall(_NO_OP, [])
-            neutral_y, neutral_x = (player_relative == _PLAYER_NEUTRAL).nonzero()
-            if not neutral_y.any():
-                return actions.FunctionCall(_NO_OP, [])
-            target = [int(neutral_x.mean()), int(neutral_y.mean())]
-            return actions.FunctionCall(_MOVE_SCREEN, [_NOT_QUEUED, target])
-        else:
-            friendly_y, friendly_x = (player_relative == _PLAYER_FRIENDLY).nonzero()
-            target = [int(friendly_x.mean()), int(friendly_y.mean())]
-            return actions.FunctionCall(_SELECT_POINT, [[0], target])
 
     @staticmethod
     def select_friendly_action(obs):
