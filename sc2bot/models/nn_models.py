@@ -13,7 +13,7 @@ class BeaconCNN(nn.Module):
     NN model specifically for beacon mini game
     """
     def __init__(self, *args):
-        super(BeaconCNN, self).__init__(*args)
+        super(BeaconCNN, self).__init__()
         self.conv1 = nn.Conv2d(1, 24, kernel_size=3, stride=1, padding=1)
         self.conv2 = nn.Conv2d(24, 24, kernel_size=3, stride=1, padding=2, dilation=2)
         self.conv3 = nn.Conv2d(24, 1, kernel_size=3, stride=1, padding=4, dilation=4)
@@ -23,6 +23,23 @@ class BeaconCNN(nn.Module):
         x = F.relu(self.conv1(x))
         x = F.relu(self.conv2(x))
         # x = F.relu(self.conv3(x))
+        x = self.conv3(x)
+        return x
+
+
+class FeatureCNN(nn.Module):
+    """
+    CNN model based on feature inputs
+    """
+    def __init__(self, n_features):
+        super(FeatureCNN, self).__init__()
+        self.conv1 = nn.Conv2d(n_features, 12, kernel_size=2, stride=1, padding=1)
+        self.conv2 = nn.Conv2d(12, 12, kernel_size=2, stride=1, padding=1)
+        self.conv3 = nn.Conv2d(12, 1, kernel_size=2, stride=1, padding=1)
+
+    def forward(self, x):
+        x = F.relu(self.conv1(x))
+        x = F.relu(self.conv2(x))
         x = self.conv3(x)
         return x
 

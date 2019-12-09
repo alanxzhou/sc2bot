@@ -32,6 +32,7 @@ flags.DEFINE_bool("profile", False, "Whether to turn on code profiling.")
 flags.DEFINE_bool("trace", False, "Whether to trace the code execution.")
 flags.DEFINE_integer("parallel", 1, "How many instances to run in parallel.")
 flags.DEFINE_bool("save_replay", False, "Whether to save a replay at the end.")
+flags.DEFINE_bool("wait", False, "Whether to pause after ever few episodes to avoid overheating")
 
 flags.DEFINE_integer("max_episodes", 1000, "Maximum number of episodes to train on")
 # flags.DEFINE_string("map", "MoveToBeacon", "Name of a map to use.")

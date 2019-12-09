@@ -71,21 +71,25 @@ class BaseRLAgent(BaseAgent, ABC):
         self._Qt.cuda()
         self._optimizer = optim.Adam(self._Q.parameters(), lr=1e-8)
 
-    def get_env_action(self, action, obs):
+    def get_env_action(self, action, obs, command=_MOVE_SCREEN):
         action = np.unravel_index(action, [1, self._screen_size, self._screen_size])
         target = [action[2], action[1]]
-        command = _MOVE_SCREEN  # action[0]   # removing unit selection out of the equation
+        # command = _MOVE_SCREEN  # action[0]   # removing unit selection out of the equation
 
         if command in obs.observation["available_actions"]:
             return actions.FunctionCall(command, [[0], target])
         else:
             return actions.FunctionCall(_NO_OP, [])
+            print(command)
 
-    def get_action(self, s):
+    def get_action(self, s, unsqueeze=True):
         # greedy
         if np.random.rand() > self._epsilon.value():
             s = torch.from_numpy(s).cuda()
-            s = s.unsqueeze(0).float()
+            if unsqueeze:
+                s = s.unsqueeze(0).float()
+            else:
+                s = s.float()
             with torch.no_grad():
                 self._action = self._Q(s).squeeze().cpu().data.numpy()
             return self._action.argmax()

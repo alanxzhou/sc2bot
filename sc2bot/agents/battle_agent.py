@@ -12,7 +12,7 @@ from pysc2.lib import actions
 from pysc2.lib import features
 from sc2bot.utils.epsilon import Epsilon
 from sc2bot.utils.replay_memory import ReplayMemory, Transition
-from sc2bot.models.nn_models import BeaconCNN
+from sc2bot.models.nn_models import FeatureCNN
 from sc2bot.agents.rl_agent import BaseRLAgent
 
 import torch
@@ -33,35 +33,7 @@ _SELECT_POINT = actions.FUNCTIONS.select_point.id
 
 _UNIT_TYPE = 6
 _UNIT_HIT_POINTS = 8
-# [{'height_map': 0,
-#   'visibility_map': 1,
-#   'creep': 2,
-#   'power': 3,
-#   'player_id': 4,
-#   'player_relative': 5,
-#   'unit_type': 6,
-#   'selected': 7,
-#   'unit_hit_points': 8,
-#   'unit_hit_points_ratio': 9,
-#   'unit_energy': 10,
-#   'unit_energy_ratio': 11,
-#   'unit_shields': 12,
-#   'unit_shields_ratio': 13,
-#   'unit_density': 14,
-#   'unit_density_aa': 15,
-#   'effects': 16,
-#   'hallucinations': 17,
-#   'cloaked': 18,
-#   'blip': 19,
-#   'buffs': 20,
-#   'buff_duration': 21,
-#   'active': 22,
-#   'build_progress': 23,
-#   'pathable': 24,
-#   'buildable': 25,
-#   'placeholder': 26},
-#  None,
-#  None]
+
 
 class BattleAgentTotal(BaseRLAgent):
     """
@@ -70,7 +42,7 @@ class BattleAgentTotal(BaseRLAgent):
 
     def __init__(self):
         super(BattleAgentTotal, self).__init__()
-        self.initialize_model(BeaconCNN())
+        self.initialize_model(FeatureCNN(2))
 
     def run_loop(self, env, max_frames=0, max_episodes=10000):
         """A run loop to have agents and an environment interact."""
@@ -106,8 +78,8 @@ class BattleAgentTotal(BaseRLAgent):
                         self._epsilon.increment()
                         break
 
-                    action = self.get_action(s)
-                    env_actions = self.get_env_action(action, obs)
+                    action = self.get_action(s, unsqueeze=False)
+                    env_actions = self.get_env_action(action, obs, command=_ATTACK_SCREEN)
                     obs = env.step([env_actions])[0]
 
                     r = obs.reward
