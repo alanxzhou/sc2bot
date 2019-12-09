@@ -40,12 +40,12 @@ class BattleAgentTotal(BaseRLAgent):
     Agent where the entire army is selected
     """
 
-    def __init__(self):
-        super(BattleAgentTotal, self).__init__()
+    def __init__(self, save_name=None):
+        super(BattleAgentTotal, self).__init__(save_name=save_name)
         self.initialize_model(FeatureCNN(2))
-        self.steps_before_training = 2000
+        self.steps_before_training = 5000
 
-    def run_loop(self, env, max_frames=0, max_episodes=10000):
+    def run_loop(self, env, max_frames=0, max_episodes=10000, save_checkpoints=500):
         """A run loop to have agents and an environment interact."""
         total_frames = 0
         start_time = time.time()
@@ -98,10 +98,14 @@ class BattleAgentTotal(BaseRLAgent):
 
                     if not self._epsilon.isTraining and total_frames % 3 == 0:
                         a = 1
+
                 n_episodes += 1
                 if len(self._loss) > 0:
                     self.loss.append(self._loss[-1])
                     self.max_q.append(self._max_q[-1])
+                if n_episodes % save_checkpoints == 0:
+                    if n_episodes > 0:
+                        self.save_data(episodes_done=n_episodes)
 
         except KeyboardInterrupt:
             pass

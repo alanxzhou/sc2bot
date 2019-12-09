@@ -35,7 +35,7 @@ flags.DEFINE_bool("save_replay", False, "Whether to save a replay at the end.")
 flags.DEFINE_bool("wait", False, "Whether to pause after ever few episodes to avoid overheating")
 flags.DEFINE_bool("load_weights", False, "Whether or not to load waits from previous training session")
 
-flags.DEFINE_integer("max_episodes", 2000, "Maximum number of episodes to train on")
+flags.DEFINE_integer("max_episodes", 3000, "Maximum number of episodes to train on")
 # flags.DEFINE_string("map", "MoveToBeacon", "Name of a map to use.")
 flags.DEFINE_string("map", "DefeatRoaches", "Name of a map to use.")
 flags.mark_flag_as_required("map")
@@ -54,11 +54,10 @@ def run_thread(map_name, visualize):
                                                        minimap=FLAGS.minimap_resolution)),
             visualize=visualize) as env:
         env = available_actions_printer.AvailableActionsPrinter(env)
-        agent = Agent()
+        agent = Agent(save_name=f'./data/{FLAGS.map}/{FLAGS.max_episodes}eps_{FLAGS.screen_resolution}res')
         # run_loop([agent], env, FLAGS.max_agent_steps)
         # agent.train(env, FLAGS.train)
-        agent.train(env, FLAGS.train,  max_episodes=FLAGS.max_episodes,
-                    save_name=f'./data/{FLAGS.map}_{FLAGS.max_episodes}_{FLAGS.screen_resolution}{FLAGS.minimap_resolution}')
+        agent.train(env, FLAGS.train,  max_episodes=FLAGS.max_episodes)
         if FLAGS.save_replay:
             env.save_replay(Agent.__name__)
 

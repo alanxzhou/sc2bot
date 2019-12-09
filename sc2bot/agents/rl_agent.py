@@ -34,7 +34,7 @@ _SELECT_POINT = actions.FUNCTIONS.select_point.id
 
 class BaseRLAgent(BaseAgent, ABC):
 
-    def __init__(self):
+    def __init__(self, save_name='./data/test.pth'):
         super(BaseRLAgent, self).__init__()
         self.training = False
         self.max_frames = 10000000
@@ -45,6 +45,7 @@ class BaseRLAgent(BaseAgent, ABC):
         self.steps_before_training = 10000
         self.target_q_update_frequency = 10000
 
+        self.save_name = save_name
         self._Q_weights_path = "./data/test.pth"
         self._Q = None
         if os.path.isfile(self._Q_weights_path):
@@ -99,16 +100,29 @@ class BaseRLAgent(BaseAgent, ABC):
             target = np.random.randint(0, self._screen_size, size=2)
             return action * self._screen_size * self._screen_size + target[0] * self._screen_size + target[1]
 
-    def train(self, env, training=True, max_episodes=10000, save_name=None):
+    def train(self, env, training=True, max_episodes=10000):
         self._epsilon.isTraining = training
         self.run_loop(env, self.max_frames, max_episodes=max_episodes)
         if self._epsilon.isTraining:
-            if save_name:
-                torch.save(self._Q.state_dict(), save_name + '.pth')
-            else:
-                torch.save(self._Q.state_dict(), self._Q_weights_path)
-            pickle.dump(self._loss, open(f'{save_name}_loss.pkl', 'wb'))
-            pickle.dump(self._max_q, open(f'{save_name}max_q.pkl', 'wb'))
+            self.save_data()
+            # if save_name:
+            #     torch.save(self._Q.state_dict(), save_name + '.pth')
+            # else:
+            #     torch.save(self._Q.state_dict(), self._Q_weights_path)
+            # pickle.dump(self._loss, open(f'{save_name}_loss.pkl', 'wb'))
+            # pickle.dump(self._max_q, open(f'{save_name}max_q.pkl', 'wb'))
+
+    def save_data(self, episodes_done=0):
+        save_data = {'loss': self._loss,
+                     'max_q': self._max_q,
+                     'epsilon': self._epsilon._value}
+
+        if episodes_done > 0:
+            save_name = self.save_name + f'_checkpoint{episodes_done}'
+        else:
+            save_name = self.save_name
+        torch.save(self._Q.state_dict(), save_name + '.pth')
+        pickle.dump(save_data, open(f'{save_name}_data.pkl', 'wb'))
 
     @abstractmethod
     def run_loop(self, env, max_frames=0, max_episodes=10000):
