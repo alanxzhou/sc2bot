@@ -114,7 +114,7 @@ class BaseRLAgent(BaseAgent, ABC):
     def run_loop(self, env, max_frames=0, max_episodes=10000):
         pass
 
-    def train_q(self):
+    def train_q(self, squeeze=False):
         if self.train_q_batch_size >= len(self._memory):
             return
 
@@ -124,6 +124,10 @@ class BaseRLAgent(BaseAgent, ABC):
         s_1 = torch.from_numpy(s_1).cuda().float()
         r = torch.from_numpy(r).cuda().float()
         done = torch.from_numpy(1 - done).cuda().float()
+
+        if squeeze:
+            s = s.squeeze()
+            s_1 = s_1.squeeze()
 
         # Q_sa = r + gamma * max(Q_s'a')
         Q = self._Q(s).view(self.train_q_batch_size, -1)

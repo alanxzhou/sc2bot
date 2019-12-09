@@ -33,10 +33,11 @@ flags.DEFINE_bool("trace", False, "Whether to trace the code execution.")
 flags.DEFINE_integer("parallel", 1, "How many instances to run in parallel.")
 flags.DEFINE_bool("save_replay", False, "Whether to save a replay at the end.")
 flags.DEFINE_bool("wait", False, "Whether to pause after ever few episodes to avoid overheating")
+flags.DEFINE_bool("load_weights", False, "Whether or not to load waits from previous training session")
 
-flags.DEFINE_integer("max_episodes", 1000, "Maximum number of episodes to train on")
+flags.DEFINE_integer("max_episodes", 2000, "Maximum number of episodes to train on")
 # flags.DEFINE_string("map", "MoveToBeacon", "Name of a map to use.")
-flags.DEFINE_string("map", "DefeatZerglingsAndBanelings", "Name of a map to use.")
+flags.DEFINE_string("map", "DefeatRoaches", "Name of a map to use.")
 flags.mark_flag_as_required("map")
 
 

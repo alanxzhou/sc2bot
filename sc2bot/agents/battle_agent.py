@@ -43,6 +43,7 @@ class BattleAgentTotal(BaseRLAgent):
     def __init__(self):
         super(BattleAgentTotal, self).__init__()
         self.initialize_model(FeatureCNN(2))
+        self.steps_before_training = 2000
 
     def run_loop(self, env, max_frames=0, max_episodes=10000):
         """A run loop to have agents and an environment interact."""
@@ -83,14 +84,14 @@ class BattleAgentTotal(BaseRLAgent):
                     obs = env.step([env_actions])[0]
 
                     r = obs.reward
-                    s1 = np.expand_dims(obs.observation["feature_screen"][_UNIT_TYPE, _UNIT_HIT_POINTS], 0)
+                    s1 = np.expand_dims(obs.observation["feature_screen"][[_UNIT_TYPE, _UNIT_HIT_POINTS]], 0)
                     done = r > 0
                     if self._epsilon.isTraining:
                         transition = Transition(s, action, s1, r, done)
                         self._memory.push(transition)
 
                     if total_frames % self.train_q_per_step == 0 and total_frames > self.steps_before_training and self._epsilon.isTraining:
-                        self.train_q()
+                        self.train_q(squeeze=True)
 
                     if total_frames % self.target_q_update_frequency == 0 and total_frames > self.steps_before_training and self._epsilon.isTraining:
                         self._Qt = copy.deepcopy(self._Q)
