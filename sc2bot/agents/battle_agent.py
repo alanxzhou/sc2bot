@@ -42,8 +42,49 @@ class BattleAgentTotal(BaseRLAgent):
 
     def __init__(self, save_name=None):
         super(BattleAgentTotal, self).__init__(save_name=save_name)
-        self.initialize_model(FeatureCNNFC(3))
+        self.initialize_model(FeatureCNN(3))
         self.steps_before_training = 5000
+        self.army_mean = None
+        self.army_reachable = 24
+
+    # def get_action(self, s, unsqueeze=True):
+    #     # greedy
+    #     if np.random.rand() > self._epsilon.value():
+    #         s = torch.from_numpy(s).cuda()
+    #         if unsqueeze:
+    #             s = s.unsqueeze(0).float()
+    #         else:
+    #             s = s.float()
+    #         with torch.no_grad():
+    #             self._action = self._Q(s).squeeze().cpu().data.numpy()
+    #         return self._action.argmax()
+    #     # explore
+    #     else:
+    #         action = np.random.randint(0, self.army_reachable ** 2)
+    #         return action
+    #
+    # def get_env_action(self, action, obs, command=_MOVE_SCREEN):
+    #     action = np.unravel_index(action, [self.army_reachable, self.army_reachable])
+    #     y, x = (obs.observation["feature_screen"][_PLAYER_RELATIVE] == _PLAYER_FRIENDLY).nonzero()
+    #     target = [int(action[1] - self.army_reachable/2 + round(x.mean())),
+    #               int(action[0] - self.army_reachable/2 + round(y.mean()))]
+    #     print('step')
+    #     print(action[1], action[0])
+    #     print(round(x.mean()), round(y.mean()), target[0], target[1])
+    #     # target = [round(x.mean()), round(y.mean())]
+    #     # command = _MOVE_SCREEN  # action[0]   # removing unit selection out of the equation
+    #     z = np.array(target)
+    #     friendly_coordinates = np.vstack((x, y)).T
+    #     if bool(np.sum(np.all(z == friendly_coordinates, axis=1))):
+    #         print('no action taken because we would attack our own unit')
+    #         return actions.FunctionCall(_NO_OP, [])
+    #
+    #     if command in obs.observation["available_actions"] and target[0] >= 0 and target[1] >= 0:
+    #         # if target
+    #         return actions.FunctionCall(command, [[0], target])
+    #     else:
+    #         return actions.FunctionCall(_NO_OP, [])
+    #         print(command)
 
     def run_loop(self, env, max_frames=0, max_episodes=10000, save_checkpoints=500):
         """A run loop to have agents and an environment interact."""
