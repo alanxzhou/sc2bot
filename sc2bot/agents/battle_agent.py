@@ -44,8 +44,8 @@ class BattleAgentTotal(BaseRLAgent):
         super(BattleAgentTotal, self).__init__(save_name=save_name)
         self.initialize_model(FeatureCNNFCBig(3))
         self.steps_before_training = 5000
-        self.army_mean = None
-        self.army_reachable = 24
+        # self.army_mean = None
+        # self.army_reachable = 24
 
     # def get_action(self, s, unsqueeze=True):
     #     # greedy
@@ -155,3 +155,26 @@ class BattleAgentTotal(BaseRLAgent):
             elapsed_time = time.time() - start_time
             print("Took %.3f seconds for %s steps: %.3f fps" % (
                 elapsed_time, total_frames, total_frames / elapsed_time))
+
+
+class BattleAgentTotalAttackOnly(BattleAgentTotal):
+    def __init__(self, save_name=None):
+        super(BattleAgentTotalAttackOnly, self).__init__(save_name=save_name)
+        self.initialize_model(FeatureCNNFCBig(3))
+        self.steps_before_training = 5000
+
+    def get_action(self, s, unsqueeze=True):
+        if np.random.rand() > self._epsilon.value():
+            s = torch.from_numpy(s).cuda()
+            if unsqueeze:
+                s = s.unsqueeze(0).float()
+            else:
+                s = s.float()
+            with torch.no_grad():
+                self._action = self._Q(s).squeeze().cpu().data.numpy()
+            return self._action.argmax()
+        # explore
+        else:
+            action = 0
+            target = np.random.randint(0, self._screen_size, size=2)
+            return action * self._screen_size * self._screen_size + target[0] * self._screen_size + target[1]
