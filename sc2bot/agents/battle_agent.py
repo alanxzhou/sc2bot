@@ -42,7 +42,7 @@ class BattleAgentTotal(BaseRLAgent):
 
     def __init__(self, save_name=None):
         super(BattleAgentTotal, self).__init__(save_name=save_name)
-        self.initialize_model(FeatureCNNFC(2))
+        self.initialize_model(FeatureCNNFC(3))
         self.steps_before_training = 5000
 
     def run_loop(self, env, max_frames=0, max_episodes=10000, save_checkpoints=500):
@@ -68,7 +68,7 @@ class BattleAgentTotal(BaseRLAgent):
                 while True:
                     total_frames += 1
 
-                    screen_observations = obs.observation["feature_screen"][[_UNIT_TYPE, _UNIT_HIT_POINTS]]
+                    screen_observations = obs.observation["feature_screen"][[_PLAYER_RELATIVE, _UNIT_TYPE, _UNIT_HIT_POINTS]]
                     s = np.expand_dims(screen_observations, 0)
 
                     if max_frames and total_frames >= max_frames:
@@ -84,7 +84,7 @@ class BattleAgentTotal(BaseRLAgent):
                     obs = env.step([env_actions])[0]
 
                     r = obs.reward
-                    s1 = np.expand_dims(obs.observation["feature_screen"][[_UNIT_TYPE, _UNIT_HIT_POINTS]], 0)
+                    s1 = np.expand_dims(obs.observation["feature_screen"][[_PLAYER_RELATIVE, _UNIT_TYPE, _UNIT_HIT_POINTS]], 0)
                     done = r > 0
                     if self._epsilon.isTraining:
                         transition = Transition(s, action, s1, r, done)
