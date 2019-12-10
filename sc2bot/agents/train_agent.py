@@ -1,6 +1,5 @@
 from pysc2 import maps
 from pysc2.env import available_actions_printer
-# from pysc2.env import run_loop
 from pysc2.env import sc2_env
 from pysc2.lib import actions, features, units
 
@@ -9,6 +8,8 @@ from absl import flags
 
 # from sc2bot.agents.rl_agent import BaseRLAgent as Agent
 from sc2bot.agents.battle_agent import BattleAgentTotal as Agent
+from sc2bot.utils import custom_maps
+from pysc2.maps import lib
 
 FLAGS = flags.FLAGS
 flags.DEFINE_bool("render", False, "Whether to render with pygame.")
@@ -35,9 +36,9 @@ flags.DEFINE_bool("save_replay", False, "Whether to save a replay at the end.")
 flags.DEFINE_bool("wait", False, "Whether to pause after ever few episodes to avoid overheating")
 flags.DEFINE_bool("load_weights", False, "Whether or not to load waits from previous training session")
 
-flags.DEFINE_integer("max_episodes", 5000, "Maximum number of episodes to train on")
+flags.DEFINE_integer("max_episodes", 1000, "Maximum number of episodes to train on")
 # flags.DEFINE_string("map", "MoveToBeacon", "Name of a map to use.")
-flags.DEFINE_string("map", "DefeatRoaches", "Name of a map to use.")
+flags.DEFINE_string("map", "DefeatRoachesAntiSuicide", "Name of a map to use.")
 # flags.DEFINE_string("map", "DefeatZerglingsAndBanelings", "Name of a map to use")
 flags.mark_flag_as_required("map")
 
@@ -68,6 +69,7 @@ def main(unused_argv):
     # stopwatch.sw.enabled = FLAGS.profile or FLAGS.trace
     # stopwatch.sw.trace = FLAGS.trace
 
+    get = lib.get(FLAGS.map)
     maps.get(FLAGS.map)  # Assert the map exists.
     run_thread(FLAGS.map, FLAGS.render)
 

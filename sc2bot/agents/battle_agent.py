@@ -44,6 +44,7 @@ class BattleAgentTotal(BaseRLAgent):
         super(BattleAgentTotal, self).__init__(save_name=save_name)
         self.initialize_model(FeatureCNNFCBig(3))
         self.steps_before_training = 5000
+        self.obs = None
         # self.army_mean = None
         # self.army_reachable = 24
 
@@ -109,8 +110,8 @@ class BattleAgentTotal(BaseRLAgent):
                 while True:
                     total_frames += 1
 
-                    screen_observations = obs.observation["feature_screen"][[_PLAYER_RELATIVE, _UNIT_TYPE, _UNIT_HIT_POINTS]]
-                    s = np.expand_dims(screen_observations, 0)
+                    self.obs = obs.observation["feature_screen"][[_PLAYER_RELATIVE, _UNIT_TYPE, _UNIT_HIT_POINTS]]
+                    s = np.expand_dims(self.obs, 0)
 
                     if max_frames and total_frames >= max_frames:
                         print("max frames reached")
@@ -137,9 +138,6 @@ class BattleAgentTotal(BaseRLAgent):
                     if total_frames % self.target_q_update_frequency == 0 and total_frames > self.steps_before_training and self._epsilon.isTraining:
                         self._Qt = copy.deepcopy(self._Q)
 
-                    if not self._epsilon.isTraining and total_frames % 3 == 0:
-                        a = 1
-
                 n_episodes += 1
                 if len(self._loss) > 0:
                     self.loss.append(self._loss[-1])
@@ -161,7 +159,6 @@ class BattleAgentTotalAttackOnly(BattleAgentTotal):
     def __init__(self, save_name=None):
         super(BattleAgentTotalAttackOnly, self).__init__(save_name=save_name)
         self.initialize_model(FeatureCNNFCBig(3))
-        self.steps_before_training = 5000
 
     def get_action(self, s, unsqueeze=True):
         if np.random.rand() > self._epsilon.value():
