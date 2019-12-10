@@ -12,7 +12,7 @@ from pysc2.lib import actions
 from pysc2.lib import features
 from sc2bot.utils.epsilon import Epsilon
 from sc2bot.utils.replay_memory import ReplayMemory, Transition
-from sc2bot.models.nn_models import FeatureCNN, FeatureCNNFC
+from sc2bot.models.nn_models import FeatureCNN, FeatureCNNFC, FeatureCNNFCBig
 from sc2bot.agents.rl_agent import BaseRLAgent
 
 import torch
@@ -42,7 +42,7 @@ class BattleAgentTotal(BaseRLAgent):
 
     def __init__(self, save_name=None):
         super(BattleAgentTotal, self).__init__(save_name=save_name)
-        self.initialize_model(FeatureCNN(3))
+        self.initialize_model(FeatureCNNFCBig(3))
         self.steps_before_training = 5000
         self.army_mean = None
         self.army_reachable = 24

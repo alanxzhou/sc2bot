@@ -50,6 +50,30 @@ class FeatureCNNFC(nn.Module):
     """
     def __init__(self, n_features, screen_size=64):
         super(FeatureCNNFC, self).__init__()
+        self.conv1 = nn.Conv2d(n_features, 6, kernel_size=3, stride=1, padding=1)
+        self.maxpool = nn.MaxPool2d(2)
+        self.conv2 = nn.Conv2d(6, 6, kernel_size=3, stride=1, padding=1)
+        self.conv3 = nn.Conv2d(6, 6, kernel_size=3, stride=1, padding=1)
+        self.fc1 = nn.Linear(6 * 32 ** 2, 32 ** 2)
+        self.fc2 = nn.Linear(32 ** 2, 24 ** 2)
+
+    def forward(self, x):
+        x = F.relu(self.conv1(x))
+        x = self.maxpool(x)
+        x = F.relu(self.conv2(x))
+        x = F.relu(self.conv3(x))
+        x = x.view(-1, 6 * 32 ** 2)
+        x = F.relu(self.fc1(x))
+        x = self.fc2(x)
+        return x
+
+
+class FeatureCNNFCBig(nn.Module):
+    """
+    CNN model based on feature inputs
+    """
+    def __init__(self, n_features, screen_size=64):
+        super(FeatureCNNFCBig, self).__init__()
         self.conv1 = nn.Conv2d(n_features, 12, kernel_size=3, stride=1, padding=1)
         self.conv2 = nn.Conv2d(12, 12, kernel_size=3, stride=1, padding=1)
         self.conv3 = nn.Conv2d(12, 1, kernel_size=3, stride=1, padding=1)

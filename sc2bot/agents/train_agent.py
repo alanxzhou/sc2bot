@@ -35,7 +35,7 @@ flags.DEFINE_bool("save_replay", False, "Whether to save a replay at the end.")
 flags.DEFINE_bool("wait", False, "Whether to pause after ever few episodes to avoid overheating")
 flags.DEFINE_bool("load_weights", False, "Whether or not to load waits from previous training session")
 
-flags.DEFINE_integer("max_episodes", 3000, "Maximum number of episodes to train on")
+flags.DEFINE_integer("max_episodes", 5000, "Maximum number of episodes to train on")
 # flags.DEFINE_string("map", "MoveToBeacon", "Name of a map to use.")
 flags.DEFINE_string("map", "DefeatRoaches", "Name of a map to use.")
 # flags.DEFINE_string("map", "DefeatZerglingsAndBanelings", "Name of a map to use")
