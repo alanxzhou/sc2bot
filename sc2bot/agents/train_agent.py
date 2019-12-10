@@ -37,7 +37,8 @@ flags.DEFINE_bool("load_weights", False, "Whether or not to load waits from prev
 
 flags.DEFINE_integer("max_episodes", 3000, "Maximum number of episodes to train on")
 # flags.DEFINE_string("map", "MoveToBeacon", "Name of a map to use.")
-flags.DEFINE_string("map", "DefeatRoaches", "Name of a map to use.")
+# flags.DEFINE_string("map", "DefeatRoaches", "Name of a map to use.")
+flags.DEFINE_string("map", "DefeatZerglingsAndBanelings", "Name of a map to use")
 flags.mark_flag_as_required("map")
 
 

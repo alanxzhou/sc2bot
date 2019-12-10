@@ -43,7 +43,7 @@ class BattleAgentTotal(BaseRLAgent):
     def __init__(self, save_name=None):
         super(BattleAgentTotal, self).__init__(save_name=save_name)
         self.initialize_model(FeatureCNN(2))
-        self.steps_before_training = 5000
+        self.steps_before_training = 256
 
     def run_loop(self, env, max_frames=0, max_episodes=10000, save_checkpoints=500):
         """A run loop to have agents and an environment interact."""
