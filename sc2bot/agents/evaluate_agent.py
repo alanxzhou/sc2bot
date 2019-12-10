@@ -58,7 +58,8 @@ def run_thread(map_name, visualize):
         agent = Agent(save_name=f'./data/{FLAGS.map}/{FLAGS.max_episodes}eps_{FLAGS.screen_resolution}res')
         # run_loop([agent], env, FLAGS.max_agent_steps)
         # agent.train(env, FLAGS.train)
-        agent.train(env, FLAGS.train,  max_episodes=FLAGS.max_episodes)
+        # agent.train(env, FLAGS.train,  max_episodes=FLAGS.max_episodes)
+        agent.evaluate(env)
         if FLAGS.save_replay:
             env.save_replay(Agent.__name__)
 

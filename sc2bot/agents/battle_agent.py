@@ -12,7 +12,7 @@ from pysc2.lib import actions
 from pysc2.lib import features
 from sc2bot.utils.epsilon import Epsilon
 from sc2bot.utils.replay_memory import ReplayMemory, Transition
-from sc2bot.models.nn_models import FeatureCNN
+from sc2bot.models.nn_models import FeatureCNN, FeatureCNNFC
 from sc2bot.agents.rl_agent import BaseRLAgent
 
 import torch
@@ -42,8 +42,8 @@ class BattleAgentTotal(BaseRLAgent):
 
     def __init__(self, save_name=None):
         super(BattleAgentTotal, self).__init__(save_name=save_name)
-        self.initialize_model(FeatureCNN(2))
-        self.steps_before_training = 256
+        self.initialize_model(FeatureCNNFC(2))
+        self.steps_before_training = 5000
 
     def run_loop(self, env, max_frames=0, max_episodes=10000, save_checkpoints=500):
         """A run loop to have agents and an environment interact."""

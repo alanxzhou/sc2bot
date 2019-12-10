@@ -100,6 +100,11 @@ class BaseRLAgent(BaseAgent, ABC):
             target = np.random.randint(0, self._screen_size, size=2)
             return action * self._screen_size * self._screen_size + target[0] * self._screen_size + target[1]
 
+    def evaluate(self, env):
+        self._Q.load_state_dict(torch.load(self.save_name + '.pth'))
+        self._epsilon.isTraining = False
+        self.run_loop(env, self.max_frames, max_episodes=10000)
+
     def train(self, env, training=True, max_episodes=10000):
         self._epsilon.isTraining = training
         self.run_loop(env, self.max_frames, max_episodes=max_episodes)
