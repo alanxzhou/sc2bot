@@ -87,18 +87,17 @@ class BattleAgentTotal(BaseRLAgent):
     #         return actions.FunctionCall(_NO_OP, [])
     #         print(command)
 
-    def run_loop(self, env, max_frames=0, max_episodes=10000, save_checkpoints=500):
+    def run_loop(self, env, max_frames=0, max_episodes=10000, save_checkpoints=500, evaluate_checkpoints=10):
         """A run loop to have agents and an environment interact."""
         total_frames = 0
         start_time = time.time()
 
         action_spec = env.action_spec()
         observation_spec = env.observation_spec()
-        n_episodes = 0
 
         self.setup(observation_spec, action_spec)
         try:
-            while n_episodes < max_episodes:
+            while self.n_episodes < max_episodes:
 
                 obs = env.reset()[0]
                 # remove unit selection from the equation by selecting the entire army on every new game.
@@ -118,7 +117,7 @@ class BattleAgentTotal(BaseRLAgent):
                         print("max frames reached")
                         return
                     if obs.last():
-                        print(f"Episode {n_episodes + 1}:\t total frames: {total_frames} Epsilon: {self._epsilon.value()}")
+                        print(f"Episode {self.n_episodes + 1}:\t total frames: {total_frames} Epsilon: {self._epsilon.value()}")
                         self._epsilon.increment()
                         break
 
@@ -140,22 +139,34 @@ class BattleAgentTotal(BaseRLAgent):
                     if total_frames % self.target_q_update_frequency == 0 and total_frames > self.steps_before_training and self._epsilon.isTraining:
                         self._Qt = copy.deepcopy(self._Q)
 
-                n_episodes += 1
-                self.reward.append(episode_reward)
+                if evaluate_checkpoints > 0 and ((self.n_episodes % evaluate_checkpoints) - (evaluate_checkpoints - 1) == 0 or self.n_episodes == 0):
+                    print('Evaluating...')
+                    self._epsilon.isTraining = False  # we need to make sure that we act greedily when we evaluate
+                    self.run_loop(env, max_episodes=max_episodes, evaluate_checkpoints=0)
+                    self._epsilon.isTraining = True
+                if evaluate_checkpoints == 0:  # this should only activate when we're inside the evaluation loop
+                    self.reward.append(episode_reward)
+                    print(f'Evaluation Complete: Episode reward = {episode_reward}')
+                    break
+
+                self.n_episodes += 1
                 if len(self._loss) > 0:
                     self.loss.append(self._loss[-1])
                     self.max_q.append(self._max_q[-1])
-                if n_episodes % save_checkpoints == 0:
-                    if n_episodes > 0:
-                        self.save_data(episodes_done=n_episodes)
+                if self.n_episodes % save_checkpoints == 0:
+                    if self.n_episodes > 0:
+                        self.save_data(episodes_done=self.n_episodes)
 
         except KeyboardInterrupt:
             pass
         finally:
             print("finished")
             elapsed_time = time.time() - start_time
-            print("Took %.3f seconds for %s steps: %.3f fps" % (
-                elapsed_time, total_frames, total_frames / elapsed_time))
+            try:
+                print("Took %.3f seconds for %s steps: %.3f fps" % (
+                    elapsed_time, total_frames, total_frames / elapsed_time))
+            except:
+                print("Took %.3f seconds for %s steps" % (elapsed_time, total_frames))
 
 
 class BattleAgentTotalAttackOnly(BattleAgentTotal):

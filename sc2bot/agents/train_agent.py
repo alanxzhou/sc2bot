@@ -36,7 +36,7 @@ flags.DEFINE_bool("save_replay", False, "Whether to save a replay at the end.")
 flags.DEFINE_bool("wait", False, "Whether to pause after ever few episodes to avoid overheating")
 flags.DEFINE_bool("load_weights", False, "Whether or not to load waits from previous training session")
 
-flags.DEFINE_integer("max_episodes", 1000, "Maximum number of episodes to train on")
+flags.DEFINE_integer("max_episodes", 5000, "Maximum number of episodes to train on")
 # flags.DEFINE_string("map", "MoveToBeacon", "Name of a map to use.")
 flags.DEFINE_string("map", "DefeatRoachesAntiSuicide", "Name of a map to use.")
 # flags.DEFINE_string("map", "DefeatZerglingsAndBanelings", "Name of a map to use")
@@ -60,6 +60,7 @@ def run_thread(map_name, visualize):
         # run_loop([agent], env, FLAGS.max_agent_steps)
         # agent.train(env, FLAGS.train)
         agent.train(env, FLAGS.train,  max_episodes=FLAGS.max_episodes)
+        # agent.evaluate(env)
         if FLAGS.save_replay:
             env.save_replay(Agent.__name__)
 

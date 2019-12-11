@@ -62,6 +62,7 @@ class BaseRLAgent(BaseAgent, ABC):
         self._fig = plt.figure()
         self._plot = [plt.subplot(2, 2, i+1) for i in range(4)]
         self._screen_size = 64
+        self.n_episodes = 0
 
     def initialize_model(self, model):
         self._Q = model
@@ -77,6 +78,7 @@ class BaseRLAgent(BaseAgent, ABC):
         self.max_q = saved_data['max_q']
         self._epsilon._value = saved_data['epsilon']
         self.reward = saved_data['reward']
+        self.n_episodes = saved_data['n_episodes']
 
     def get_env_action(self, action, obs, command=_MOVE_SCREEN):
         action = np.unravel_index(action, [1, self._screen_size, self._screen_size])
@@ -87,13 +89,13 @@ class BaseRLAgent(BaseAgent, ABC):
             return actions.FunctionCall(command, [[0], target])
         else:
             return actions.FunctionCall(_NO_OP, [])
-            print(command)
 
     def save_data(self, episodes_done=0):
         save_data = {'loss': self.loss,
                      'max_q': self.max_q,
                      'epsilon': self._epsilon._value,
-                     'reward': self.reward}
+                     'reward': self.reward,
+                     'n_episodes': self.n_episodes}
 
         if episodes_done > 0:
             save_name = self.save_name + f'_checkpoint{episodes_done}'
@@ -102,25 +104,20 @@ class BaseRLAgent(BaseAgent, ABC):
         torch.save(self._Q.state_dict(), save_name + '.pth')
         pickle.dump(save_data, open(f'{save_name}_data.pkl', 'wb'))
 
-    def evaluate(self, env):
-        self._Q.load_state_dict(torch.load(self.save_name + '.pth'))
+    def evaluate(self, env, max_episodes=10000, load_dict = True):
+        if load_dict:
+            self._Q.load_state_dict(torch.load(self.save_name + '.pth'))
         self._epsilon.isTraining = False
-        self.run_loop(env, self.max_frames, max_episodes=10000)
+        self.run_loop(env, self.max_frames, max_episodes=max_episodes)
 
     def train(self, env, training=True, max_episodes=10000):
         self._epsilon.isTraining = training
         self.run_loop(env, self.max_frames, max_episodes=max_episodes)
         if self._epsilon.isTraining:
             self.save_data()
-            # if save_name:
-            #     torch.save(self._Q.state_dict(), save_name + '.pth')
-            # else:
-            #     torch.save(self._Q.state_dict(), self._Q_weights_path)
-            # pickle.dump(self._loss, open(f'{save_name}_loss.pkl', 'wb'))
-            # pickle.dump(self._max_q, open(f'{save_name}max_q.pkl', 'wb'))
 
     @abstractmethod
-    def run_loop(self, env, max_frames=0, max_episodes=10000):
+    def run_loop(self, env, max_frames, max_episodes, evaluate_checkpoints):
         pass
 
     def get_action(self, s, unsqueeze=True):
