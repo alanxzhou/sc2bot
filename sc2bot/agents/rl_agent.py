@@ -73,7 +73,7 @@ class BaseRLAgent(BaseAgent, ABC):
 
     def load_model_checkpoint(self):
         self._Q.load_state_dict(torch.load(self.save_name + '.pth'))
-        saved_data = pickle.load(open(f'{self.save_name}', 'rb'))
+        saved_data = pickle.load(open(f'{self.save_name}' + '_data.pkl', 'rb'))
         self.loss = saved_data['loss']
         self.max_q = saved_data['max_q']
         self._epsilon._value = saved_data['epsilon']
@@ -104,11 +104,12 @@ class BaseRLAgent(BaseAgent, ABC):
         torch.save(self._Q.state_dict(), save_name + '.pth')
         pickle.dump(save_data, open(f'{save_name}_data.pkl', 'wb'))
 
-    def evaluate(self, env, max_episodes=10000, load_dict = True):
+    def evaluate(self, env, max_episodes=10000, load_dict=True):
         if load_dict:
             self._Q.load_state_dict(torch.load(self.save_name + '.pth'))
         self._epsilon.isTraining = False
-        self.run_loop(env, self.max_frames, max_episodes=max_episodes)
+        while True:
+            self.run_loop(env, self.max_frames, max_episodes=max_episodes, evaluate_checkpoints=0)
 
     def train(self, env, training=True, max_episodes=10000):
         self._epsilon.isTraining = training

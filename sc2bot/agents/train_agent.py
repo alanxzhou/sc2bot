@@ -33,10 +33,10 @@ flags.DEFINE_bool("profile", False, "Whether to turn on code profiling.")
 flags.DEFINE_bool("trace", False, "Whether to trace the code execution.")
 flags.DEFINE_integer("parallel", 1, "How many instances to run in parallel.")
 flags.DEFINE_bool("save_replay", False, "Whether to save a replay at the end.")
-flags.DEFINE_bool("wait", False, "Whether to pause after ever few episodes to avoid overheating")
-flags.DEFINE_bool("load_weights", False, "Whether or not to load waits from previous training session")
+flags.DEFINE_bool("load_weights", True, "Whether or not to load waits from previous training session")
+flags.DEFINE_string("load_file", f'./data/DefeatRoachesAntiSuicide/5000eps_64res', "file to load params from")
 
-flags.DEFINE_integer("max_episodes", 5000, "Maximum number of episodes to train on")
+flags.DEFINE_integer("max_episodes", 6000, "Maximum number of episodes to train on")
 # flags.DEFINE_string("map", "MoveToBeacon", "Name of a map to use.")
 flags.DEFINE_string("map", "DefeatRoachesAntiSuicide", "Name of a map to use.")
 # flags.DEFINE_string("map", "DefeatZerglingsAndBanelings", "Name of a map to use")
@@ -56,11 +56,17 @@ def run_thread(map_name, visualize):
                                                        minimap=FLAGS.minimap_resolution)),
             visualize=visualize) as env:
         env = available_actions_printer.AvailableActionsPrinter(env)
-        agent = Agent(save_name=f'./data/{FLAGS.map}/{FLAGS.max_episodes}eps_{FLAGS.screen_resolution}res')
+        if FLAGS.load_weights:
+            agent = Agent(save_name=FLAGS.load_file)
+            agent.load_model_checkpoint()
+        else:
+            agent = Agent(save_name=f'./data/{FLAGS.map}/{FLAGS.max_episodes}eps_{FLAGS.screen_resolution}res')
         # run_loop([agent], env, FLAGS.max_agent_steps)
         # agent.train(env, FLAGS.train)
-        agent.train(env, FLAGS.train,  max_episodes=FLAGS.max_episodes)
-        # agent.evaluate(env)
+        if FLAGS.train:
+            agent.train(env, FLAGS.train,  max_episodes=FLAGS.max_episodes)
+        else:
+            agent.evaluate(env)
         if FLAGS.save_replay:
             env.save_replay(Agent.__name__)
 
