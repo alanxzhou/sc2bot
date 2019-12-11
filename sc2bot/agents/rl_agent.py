@@ -34,7 +34,7 @@ _SELECT_POINT = actions.FUNCTIONS.select_point.id
 
 class BaseRLAgent(BaseAgent, ABC):
 
-    def __init__(self, save_name='./data/test.pth'):
+    def __init__(self, save_name='./data/'):
         super(BaseRLAgent, self).__init__()
         self.training = False
         self.max_frames = 10000000
@@ -59,10 +59,9 @@ class BaseRLAgent(BaseAgent, ABC):
         self.reward = []
         self._action = None
         self._screen = None
-        self._fig = plt.figure()
-        self._plot = [plt.subplot(2, 2, i+1) for i in range(4)]
         self._screen_size = 64
         self.n_episodes = 0
+        self.features = None
 
     def initialize_model(self, model):
         self._Q = model

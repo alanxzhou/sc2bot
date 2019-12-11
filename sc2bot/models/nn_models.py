@@ -17,7 +17,7 @@ class BeaconCNN(nn.Module):
         self.conv1 = nn.Conv2d(1, 24, kernel_size=3, stride=1, padding=1)
         self.conv2 = nn.Conv2d(24, 24, kernel_size=3, stride=1, padding=2, dilation=2)
         self.conv3 = nn.Conv2d(24, 1, kernel_size=3, stride=1, padding=4, dilation=4)
-        # self.conv4 = nn.Conv2d(24, 1, kernel_size=3, stride=1, padding=8, dilation=8)
+        self.name = 'BeaconCNN'
 
     def forward(self, x):
         x = F.relu(self.conv1(x))
@@ -33,9 +33,10 @@ class FeatureCNN(nn.Module):
     """
     def __init__(self, n_features):
         super(FeatureCNN, self).__init__()
-        self.conv1 = nn.Conv2d(n_features, 12, kernel_size=3, stride=1, padding=1)  # TODO: Should be 3 to preserve size
+        self.conv1 = nn.Conv2d(n_features, 12, kernel_size=3, stride=1, padding=1)
         self.conv2 = nn.Conv2d(12, 12, kernel_size=3, stride=1, padding=1)
         self.conv3 = nn.Conv2d(12, 1, kernel_size=3, stride=1, padding=1)
+        self.name = f'FeatureCNN{n_features}'
 
     def forward(self, x):
         x = F.relu(self.conv1(x))
@@ -44,18 +45,19 @@ class FeatureCNN(nn.Module):
         return x
 
 
-class FeatureCNNFC(nn.Module):
+class FeatureCNNFCLimited(nn.Module):
     """
     CNN model based on feature inputs
     """
-    def __init__(self, n_features, screen_size=64):
-        super(FeatureCNNFC, self).__init__()
+    def __init__(self, n_features, radius):
+        super(FeatureCNNFCLimited, self).__init__()
         self.conv1 = nn.Conv2d(n_features, 6, kernel_size=3, stride=1, padding=1)
         self.maxpool = nn.MaxPool2d(2)
         self.conv2 = nn.Conv2d(6, 6, kernel_size=3, stride=1, padding=1)
         self.conv3 = nn.Conv2d(6, 6, kernel_size=3, stride=1, padding=1)
         self.fc1 = nn.Linear(6 * 32 ** 2, 32 ** 2)
         self.fc2 = nn.Linear(32 ** 2, 24 ** 2)
+        self.name = f'FeatureCNNFC{n_features}'
 
     def forward(self, x):
         x = F.relu(self.conv1(x))
@@ -79,6 +81,28 @@ class FeatureCNNFCBig(nn.Module):
         self.conv3 = nn.Conv2d(12, 1, kernel_size=3, stride=1, padding=1)
         self.fc1 = nn.Linear(screen_size ** 2, screen_size ** 2)
         self.fc2 = nn.Linear(screen_size ** 2, screen_size ** 2)
+        self.name = f'FeatureCNNFCBig{n_features}'
+
+    def forward(self, x):
+        x = F.relu(self.conv1(x))
+        x = F.relu(self.conv2(x))
+        x = F.relu(self.conv3(x))
+        x = x.view(-1, 64 ** 2)
+        x = F.relu(self.fc1(x))
+        x = self.fc2(x)
+        return x
+
+
+class FeatureCNNSingle(nn.Module):
+
+    def __init__(self, n_features, screen_size=64):
+        super(FeatureCNNSingle, self).__init__()
+        self.conv1 = nn.Conv2d(n_features, 6, kernel_size=7, stride=1, padding=3)
+        self.conv2 = nn.Conv2d(12, 12, kernel_size=3, stride=1, padding=1)
+        self.conv3 = nn.Conv2d(12, 24, kernel_size=3, stride=1, padding=1)
+        self.fc1 = nn.Linear(24 * screen_size ** 2)
+        self.fc2 = nn.Linear(screen_size ** 2, screen_size ** 2)
+        self.name = f'FeatureCNNSingle{n_features}'
 
     def forward(self, x):
         x = F.relu(self.conv1(x))

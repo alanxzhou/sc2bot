@@ -32,6 +32,7 @@ _SELECT_ALL = [0]
 _SELECT_POINT = actions.FUNCTIONS.select_point.id
 
 _UNIT_TYPE = 6
+_SELECTED = 7
 _UNIT_HIT_POINTS = 8
 
 
@@ -45,6 +46,7 @@ class BattleAgentTotal(BaseRLAgent):
         self.initialize_model(FeatureCNNFCBig(3))
         self.steps_before_training = 5000
         self.obs = None
+        self.features = [_PLAYER_RELATIVE, _UNIT_TYPE, _UNIT_HIT_POINTS]
         # self.army_mean = None
         # self.army_reachable = 24
 
@@ -110,7 +112,7 @@ class BattleAgentTotal(BaseRLAgent):
                 while True:
                     total_frames += 1
 
-                    self.obs = obs.observation["feature_screen"][[_PLAYER_RELATIVE, _UNIT_TYPE, _UNIT_HIT_POINTS]]
+                    self.obs = obs.observation["feature_screen"][self.features]
                     s = np.expand_dims(self.obs, 0)
 
                     if max_frames and total_frames >= max_frames:
@@ -127,7 +129,7 @@ class BattleAgentTotal(BaseRLAgent):
 
                     r = obs.reward
                     episode_reward += r
-                    s1 = np.expand_dims(obs.observation["feature_screen"][[_PLAYER_RELATIVE, _UNIT_TYPE, _UNIT_HIT_POINTS]], 0)
+                    s1 = np.expand_dims(obs.observation["feature_screen"][self.features], 0)
                     done = r > 0
                     if self._epsilon.isTraining:
                         transition = Transition(s, action, s1, r, done)
@@ -169,8 +171,45 @@ class BattleAgentTotal(BaseRLAgent):
                 print("Took %.3f seconds for %s steps" % (elapsed_time, total_frames))
 
 
-class BattleAgentTotalAttackOnly(BattleAgentTotal):
-    def __init__(self, save_name=None):
-        super(BattleAgentTotalAttackOnly, self).__init__(save_name=save_name)
-        self.initialize_model(FeatureCNNFCBig(3))
+class BattleAgentLimited(BaseRLAgent):
 
+    def __init__(self, save_name):
+        super(BattleAgentLimited, self).__init__(save_name=save_name)
+        self.steps_before_training = 5000
+        self.obs = None
+        self.features = [_PLAYER_RELATIVE, _UNIT_TYPE, _UNIT_HIT_POINTS]
+        self.initialize_model(FeatureCNNFCBig(len(self.features)))
+
+    # def get_env_action(self, action, obs, command=_MOVE_SCREEN):
+    #     action = np.unravel_index(action, [self.army_reachable, self.army_reachable])
+    #     y, x = (obs.observation["feature_screen"][_PLAYER_RELATIVE] == _PLAYER_FRIENDLY).nonzero()
+    #     target = [int(action[1] - self.army_reachable/2 + round(x.mean())),
+    #               int(action[0] - self.army_reachable/2 + round(y.mean()))]
+    #     print('step')
+    #     print(action[1], action[0])
+    #     print(round(x.mean()), round(y.mean()), target[0], target[1])
+    #     # target = [round(x.mean()), round(y.mean())]
+    #     # command = _MOVE_SCREEN  # action[0]   # removing unit selection out of the equation
+    #     z = np.array(target)
+    #     friendly_coordinates = np.vstack((x, y)).T
+    #     if bool(np.sum(np.all(z == friendly_coordinates, axis=1))):
+    #         print('no action taken because we would attack our own unit')
+    #         return actions.FunctionCall(_NO_OP, [])
+    #
+    #     if command in obs.observation["available_actions"] and target[0] >= 0 and target[1] >= 0:
+    #         # if target
+    #         return actions.FunctionCall(command, [[0], target])
+    #     else:
+    #         return actions.FunctionCall(_NO_OP, [])
+    #         print(command)
+
+    def get_env_action(self, action, obs, command=_MOVE_SCREEN):
+        action = np.unravel_index(action, [self._screen_size, self._screen_size])
+        y, x = (obs.observation["feature_screen"][_PLAYER_RELATIVE] == _PLAYER_FRIENDLY).nonzero()
+        friendly_coordinates = np.vstack((x, y)).T
+        if bool(np.sum(np.all(action == friendly_coordinates, axis=1))):
+            command = _MOVE_SCREEN
+        if command in obs.observation["available_actions"]:
+            return actions.FunctionCall(command, [[0], action])
+        else:
+            return actions.FunctionCall(_NO_OP, [])
