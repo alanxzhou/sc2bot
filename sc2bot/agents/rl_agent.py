@@ -46,10 +46,7 @@ class BaseRLAgent(BaseAgent, ABC):
         self.target_q_update_frequency = 10000
 
         self.save_name = save_name
-        self._Q_weights_path = "./data/test.pth"
         self._Q = None
-        if os.path.isfile(self._Q_weights_path):
-            self._Q.load_state_dict(torch.load(self._Q_weights_path))
         self._Qt = None
         self._optimizer = None
         self._criterion = nn.MSELoss()
@@ -59,6 +56,7 @@ class BaseRLAgent(BaseAgent, ABC):
         self._max_q = deque(maxlen=1000)
         self.loss = []
         self.max_q = []
+        self.reward = []
         self._action = None
         self._screen = None
         self._fig = plt.figure()
@@ -72,6 +70,14 @@ class BaseRLAgent(BaseAgent, ABC):
         self._Qt.cuda()
         self._optimizer = optim.Adam(self._Q.parameters(), lr=1e-8)
 
+    def load_model_checkpoint(self):
+        self._Q.load_state_dict(torch.load(self.save_name + '.pth'))
+        saved_data = pickle.load(open(f'{self.save_name}', 'rb'))
+        self.loss = saved_data['loss']
+        self.max_q = saved_data['max_q']
+        self._epsilon._value = saved_data['epsilon']
+        self.reward = saved_data['reward']
+
     def get_env_action(self, action, obs, command=_MOVE_SCREEN):
         action = np.unravel_index(action, [1, self._screen_size, self._screen_size])
         target = [action[2], action[1]]
@@ -83,22 +89,18 @@ class BaseRLAgent(BaseAgent, ABC):
             return actions.FunctionCall(_NO_OP, [])
             print(command)
 
-    def get_action(self, s, unsqueeze=True):
-        # greedy
-        if np.random.rand() > self._epsilon.value():
-            s = torch.from_numpy(s).cuda()
-            if unsqueeze:
-                s = s.unsqueeze(0).float()
-            else:
-                s = s.float()
-            with torch.no_grad():
-                self._action = self._Q(s).squeeze().cpu().data.numpy()
-            return self._action.argmax()
-        # explore
+    def save_data(self, episodes_done=0):
+        save_data = {'loss': self.loss,
+                     'max_q': self.max_q,
+                     'epsilon': self._epsilon._value,
+                     'reward': self.reward}
+
+        if episodes_done > 0:
+            save_name = self.save_name + f'_checkpoint{episodes_done}'
         else:
-            action = 0
-            target = np.random.randint(0, self._screen_size, size=2)
-            return action * self._screen_size * self._screen_size + target[0] * self._screen_size + target[1]
+            save_name = self.save_name
+        torch.save(self._Q.state_dict(), save_name + '.pth')
+        pickle.dump(save_data, open(f'{save_name}_data.pkl', 'wb'))
 
     def evaluate(self, env):
         self._Q.load_state_dict(torch.load(self.save_name + '.pth'))
@@ -117,21 +119,26 @@ class BaseRLAgent(BaseAgent, ABC):
             # pickle.dump(self._loss, open(f'{save_name}_loss.pkl', 'wb'))
             # pickle.dump(self._max_q, open(f'{save_name}max_q.pkl', 'wb'))
 
-    def save_data(self, episodes_done=0):
-        save_data = {'loss': self._loss,
-                     'max_q': self._max_q,
-                     'epsilon': self._epsilon._value}
-
-        if episodes_done > 0:
-            save_name = self.save_name + f'_checkpoint{episodes_done}'
-        else:
-            save_name = self.save_name
-        torch.save(self._Q.state_dict(), save_name + '.pth')
-        pickle.dump(save_data, open(f'{save_name}_data.pkl', 'wb'))
-
     @abstractmethod
     def run_loop(self, env, max_frames=0, max_episodes=10000):
         pass
+
+    def get_action(self, s, unsqueeze=True):
+        # greedy
+        if np.random.rand() > self._epsilon.value():
+            s = torch.from_numpy(s).cuda()
+            if unsqueeze:
+                s = s.unsqueeze(0).float()
+            else:
+                s = s.float()
+            with torch.no_grad():
+                self._action = self._Q(s).squeeze().cpu().data.numpy()
+            return self._action.argmax()
+        # explore
+        else:
+            action = 0
+            target = np.random.randint(0, self._screen_size, size=2)
+            return action * self._screen_size * self._screen_size + target[0] * self._screen_size + target[1]
 
     def train_q(self, squeeze=False):
         if self.train_q_batch_size >= len(self._memory):

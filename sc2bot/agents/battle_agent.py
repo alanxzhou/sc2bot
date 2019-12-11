@@ -106,6 +106,7 @@ class BattleAgentTotal(BaseRLAgent):
                 obs = env.step([select_army])[0]
 
                 self.reset()
+                episode_reward = 0
 
                 while True:
                     total_frames += 1
@@ -126,6 +127,7 @@ class BattleAgentTotal(BaseRLAgent):
                     obs = env.step([env_actions])[0]
 
                     r = obs.reward
+                    episode_reward += r
                     s1 = np.expand_dims(obs.observation["feature_screen"][[_PLAYER_RELATIVE, _UNIT_TYPE, _UNIT_HIT_POINTS]], 0)
                     done = r > 0
                     if self._epsilon.isTraining:
@@ -139,6 +141,7 @@ class BattleAgentTotal(BaseRLAgent):
                         self._Qt = copy.deepcopy(self._Q)
 
                 n_episodes += 1
+                self.reward.append(episode_reward)
                 if len(self._loss) > 0:
                     self.loss.append(self._loss[-1])
                     self.max_q.append(self._max_q[-1])
@@ -160,18 +163,3 @@ class BattleAgentTotalAttackOnly(BattleAgentTotal):
         super(BattleAgentTotalAttackOnly, self).__init__(save_name=save_name)
         self.initialize_model(FeatureCNNFCBig(3))
 
-    def get_action(self, s, unsqueeze=True):
-        if np.random.rand() > self._epsilon.value():
-            s = torch.from_numpy(s).cuda()
-            if unsqueeze:
-                s = s.unsqueeze(0).float()
-            else:
-                s = s.float()
-            with torch.no_grad():
-                self._action = self._Q(s).squeeze().cpu().data.numpy()
-            return self._action.argmax()
-        # explore
-        else:
-            action = 0
-            target = np.random.randint(0, self._screen_size, size=2)
-            return action * self._screen_size * self._screen_size + target[0] * self._screen_size + target[1]
