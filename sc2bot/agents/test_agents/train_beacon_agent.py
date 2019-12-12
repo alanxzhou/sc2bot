@@ -8,7 +8,7 @@ from absl import app
 from absl import flags
 
 # from pytorch.sc2_agents.base_rl_agent import BaseRLAgent as Agent
-from sc2bot.agents.beacon_agent import BeaconAgent as Agent
+from sc2bot.agents.test_agents.beacon_agent import BeaconAgent as Agent
 
 FLAGS = flags.FLAGS
 flags.DEFINE_bool("render", False, "Whether to render with pygame.")

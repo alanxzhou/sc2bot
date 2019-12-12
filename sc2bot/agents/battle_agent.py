@@ -7,6 +7,7 @@ import numpy as np
 import os
 import time
 
+from pysc2.agents.scripted_agent import _xy_locs
 from pysc2.agents.base_agent import BaseAgent
 from pysc2.lib import actions
 from pysc2.lib import features
@@ -35,6 +36,8 @@ _UNIT_TYPE = 6
 _SELECTED = 7
 _UNIT_HIT_POINTS = 8
 
+FUNCTIONS = actions.FUNCTIONS
+_PLAYER_ENEMY = features.PlayerRelative.ENEMY
 
 class BattleAgent(BaseRLAgent):
     """
@@ -193,3 +196,4 @@ class BattleAgentLimited(BattleAgent):
     #     else:
     #         return actions.FunctionCall(_NO_OP, [])
     #         print(command)
+

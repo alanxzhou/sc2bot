@@ -7,7 +7,7 @@ from absl import app
 from absl import flags
 
 # from sc2bot.agents.rl_agent import BaseRLAgent as Agent
-from sc2bot.agents.battle_agent import BattleAgent, BattleAgentLimited
+from sc2bot.agents.battle_agent import *
 from sc2bot.utils import custom_maps
 from pysc2.maps import lib
 
@@ -37,7 +37,7 @@ flags.DEFINE_string("load_file", f'./data/DefeatRoachesAntiSuicide/5000eps_64res
 
 flags.DEFINE_integer("max_episodes", 5000, "Maximum number of episodes to train on")
 # flags.DEFINE_string("map", "MoveToBeacon", "Name of a map to use.")
-flags.DEFINE_string("map", "DefeatRoachesAntiSuicideMarineDeath0", "Name of a map to use.")
+flags.DEFINE_string("map", "DefeatRoachesAntiSuicide", "Name of a map to use.")
 # flags.DEFINE_string("map", "DefeatZerglingsAndBanelings", "Name of a map to use")
 flags.mark_flag_as_required("map")
 
