@@ -121,7 +121,7 @@ def run_thread(map_name, visualize):
 
 
 def main(unused_argument):
-    map_names = [FLAGS.map2, "DefeatRoaches"]
+    map_names = ["DefeatRoaches"]
     for map_name in map_names:
         get = lib.get(map_name)
         maps.get(map_name)
