@@ -31,13 +31,12 @@ _SELECT_ARMY = actions.FUNCTIONS.select_army.id
 _NOT_QUEUED = [0]
 _SELECT_ALL = [0]
 _SELECT_POINT = actions.FUNCTIONS.select_point.id
-
 _UNIT_TYPE = 6
 _SELECTED = 7
 _UNIT_HIT_POINTS = 8
-
 FUNCTIONS = actions.FUNCTIONS
 _PLAYER_ENEMY = features.PlayerRelative.ENEMY
+
 
 class BattleAgent(BaseRLAgent):
     """
