@@ -12,7 +12,7 @@ from pysc2.lib import actions
 from pysc2.lib import features
 from sc2bot.utils.epsilon import Epsilon
 from sc2bot.utils.replay_memory import ReplayMemory, Transition
-from sc2bot.models.nn_models import FeatureCNN, FeatureCNNFC, FeatureCNNFCBig
+from sc2bot.models.nn_models import FeatureCNN, FeatureCNNFCLimited, FeatureCNNFCBig
 from sc2bot.agents.rl_agent import BaseRLAgent
 
 import torch
@@ -36,58 +36,17 @@ _SELECTED = 7
 _UNIT_HIT_POINTS = 8
 
 
-class BattleAgentTotal(BaseRLAgent):
+class BattleAgent(BaseRLAgent):
     """
     Agent where the entire army is selected
     """
 
     def __init__(self, save_name=None):
-        super(BattleAgentTotal, self).__init__(save_name=save_name)
+        super(BattleAgent, self).__init__(save_name=save_name)
         self.initialize_model(FeatureCNNFCBig(3))
         self.steps_before_training = 5000
         self.obs = None
         self.features = [_PLAYER_RELATIVE, _UNIT_TYPE, _UNIT_HIT_POINTS]
-        # self.army_mean = None
-        # self.army_reachable = 24
-
-    # def get_action(self, s, unsqueeze=True):
-    #     # greedy
-    #     if np.random.rand() > self._epsilon.value():
-    #         s = torch.from_numpy(s).cuda()
-    #         if unsqueeze:
-    #             s = s.unsqueeze(0).float()
-    #         else:
-    #             s = s.float()
-    #         with torch.no_grad():
-    #             self._action = self._Q(s).squeeze().cpu().data.numpy()
-    #         return self._action.argmax()
-    #     # explore
-    #     else:
-    #         action = np.random.randint(0, self.army_reachable ** 2)
-    #         return action
-    #
-    # def get_env_action(self, action, obs, command=_MOVE_SCREEN):
-    #     action = np.unravel_index(action, [self.army_reachable, self.army_reachable])
-    #     y, x = (obs.observation["feature_screen"][_PLAYER_RELATIVE] == _PLAYER_FRIENDLY).nonzero()
-    #     target = [int(action[1] - self.army_reachable/2 + round(x.mean())),
-    #               int(action[0] - self.army_reachable/2 + round(y.mean()))]
-    #     print('step')
-    #     print(action[1], action[0])
-    #     print(round(x.mean()), round(y.mean()), target[0], target[1])
-    #     # target = [round(x.mean()), round(y.mean())]
-    #     # command = _MOVE_SCREEN  # action[0]   # removing unit selection out of the equation
-    #     z = np.array(target)
-    #     friendly_coordinates = np.vstack((x, y)).T
-    #     if bool(np.sum(np.all(z == friendly_coordinates, axis=1))):
-    #         print('no action taken because we would attack our own unit')
-    #         return actions.FunctionCall(_NO_OP, [])
-    #
-    #     if command in obs.observation["available_actions"] and target[0] >= 0 and target[1] >= 0:
-    #         # if target
-    #         return actions.FunctionCall(command, [[0], target])
-    #     else:
-    #         return actions.FunctionCall(_NO_OP, [])
-    #         print(command)
 
     def run_loop(self, env, max_frames=0, max_episodes=10000, save_checkpoints=500, evaluate_checkpoints=10):
         """A run loop to have agents and an environment interact."""
@@ -171,14 +130,46 @@ class BattleAgentTotal(BaseRLAgent):
                 print("Took %.3f seconds for %s steps" % (elapsed_time, total_frames))
 
 
-class BattleAgentLimited(BaseRLAgent):
+class BattleAgentLimited(BattleAgent):
 
     def __init__(self, save_name):
         super(BattleAgentLimited, self).__init__(save_name=save_name)
-        self.steps_before_training = 5000
-        self.obs = None
+        self.steps_before_training = 256
         self.features = [_PLAYER_RELATIVE, _UNIT_TYPE, _UNIT_HIT_POINTS]
-        self.initialize_model(FeatureCNNFCBig(len(self.features)))
+        self.radius = 10
+        self.initialize_model(FeatureCNNFCLimited(len(self.features), self.radius, screen_size=64))
+
+    def get_action(self, s, unsqueeze=True):
+        # greedy
+        if np.random.rand() > self._epsilon.value():
+            s = torch.from_numpy(s).cuda()
+            if unsqueeze:
+                s = s.unsqueeze(0).float()
+            else:
+                s = s.float()
+            with torch.no_grad():
+                self._action = self._Q(s).squeeze().cpu().data.numpy()
+            return self._action.argmax()
+        # explore
+        else:
+            action = np.random.randint(0, self.radius ** 2)
+            return action
+
+    def get_env_action(self, action, obs, command=_MOVE_SCREEN):
+        relative_action = np.unravel_index(action, [self.radius, self.radius])
+        y, x = (obs.observation["feature_screen"][_PLAYER_RELATIVE] == _PLAYER_FRIENDLY).nonzero()
+        if len(x) > 0:
+            action = [int(relative_action[1] - self.radius/2 + round(x.mean())),
+                      int(relative_action[0] - self.radius/2 + round(y.mean()))]
+            friendly_coordinates = np.vstack((x, y)).T
+            if bool(np.sum(np.all(action == friendly_coordinates, axis=1))):
+                command = _MOVE_SCREEN
+        else:
+            action = [int(relative_action[1] - self.radius/2), int(relative_action[0] - self.radius/2)]
+        if command in obs.observation["available_actions"]:
+            return actions.FunctionCall(command, [[0], action])
+        else:
+            return actions.FunctionCall(_NO_OP, [])
 
     # def get_env_action(self, action, obs, command=_MOVE_SCREEN):
     #     action = np.unravel_index(action, [self.army_reachable, self.army_reachable])
@@ -202,14 +193,3 @@ class BattleAgentLimited(BaseRLAgent):
     #     else:
     #         return actions.FunctionCall(_NO_OP, [])
     #         print(command)
-
-    def get_env_action(self, action, obs, command=_MOVE_SCREEN):
-        action = np.unravel_index(action, [self._screen_size, self._screen_size])
-        y, x = (obs.observation["feature_screen"][_PLAYER_RELATIVE] == _PLAYER_FRIENDLY).nonzero()
-        friendly_coordinates = np.vstack((x, y)).T
-        if bool(np.sum(np.all(action == friendly_coordinates, axis=1))):
-            command = _MOVE_SCREEN
-        if command in obs.observation["available_actions"]:
-            return actions.FunctionCall(command, [[0], action])
-        else:
-            return actions.FunctionCall(_NO_OP, [])

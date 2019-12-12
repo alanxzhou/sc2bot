@@ -11,6 +11,7 @@ class CustomGame(lib.Map):
 
 mini_games = [
     "DefeatRoachesAntiSuicide",  # 120s
+    "DefeatRoachesAntiSuicideMarineDeath0"
 ]
 
 
