@@ -52,8 +52,8 @@ class BaseRLAgent(BaseAgent, ABC):
         self._criterion = nn.MSELoss()
         self._memory = ReplayMemory(100000)
 
-        self._loss = deque(maxlen=1000)
-        self._max_q = deque(maxlen=1000)
+        self._loss = deque(maxlen=int(1e5))
+        self._max_q = deque(maxlen=int(1e5))
         self.loss = []
         self.max_q = []
         self.reward = []
@@ -70,14 +70,18 @@ class BaseRLAgent(BaseAgent, ABC):
         self._Qt.cuda()
         self._optimizer = optim.Adam(self._Q.parameters(), lr=1e-8)
 
-    def load_model_checkpoint(self):
+    def load_model_checkpoint(self, load_params=True):
         self._Q.load_state_dict(torch.load(self.save_name + '.pth'))
-        saved_data = pickle.load(open(f'{self.save_name}' + '_data.pkl', 'rb'))
-        self.loss = saved_data['loss']
-        self.max_q = saved_data['max_q']
-        self._epsilon._value = saved_data['epsilon']
-        self.reward = saved_data['reward']
-        self.n_episodes = saved_data['n_episodes']
+        for key in self._Q.state_dict():
+            print(self._Q.state_dict()[key])
+            print(self._Qt.state_dict()[key])
+        if load_params:
+            saved_data = pickle.load(open(f'{self.save_name}' + '_data.pkl', 'rb'))
+            self.loss = saved_data['loss']
+            self.max_q = saved_data['max_q']
+            self._epsilon._value = saved_data['epsilon']
+            self.reward = saved_data['reward']
+            self.n_episodes = saved_data['n_episodes']
 
     def get_env_action(self, action, obs, command=_MOVE_SCREEN):
         action = np.unravel_index(action, [1, self._screen_size, self._screen_size])
