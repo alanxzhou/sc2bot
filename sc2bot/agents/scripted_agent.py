@@ -38,6 +38,7 @@ class BattleAgentScripted(BaseAgent):
         self.obs = None
         self.features = [_PLAYER_RELATIVE, _UNIT_TYPE, _UNIT_HIT_POINTS]
         self.mapname = mapname
+        self.screen_size = 64
 
     def get_action(self, obs):
         if FUNCTIONS.Attack_screen.id in obs.observation.available_actions:
@@ -86,14 +87,20 @@ class BattleAgentScripted(BaseAgent):
                         break
 
                     action = self.get_action(obs)
+                    if len(action[-1]) > 0:
+                        a_idx = action[-1][-1]
+                        action_indices = [a_idx[1], a_idx[0]]
+                        action_index = np.ravel_multi_index(action_indices, [self.screen_size, self.screen_size])
+
                     obs = env.step([action])[0]
 
                     r = obs.reward
                     episode_reward += r
                     s1 = np.expand_dims(obs.observation["feature_screen"][self.features], 0)
                     done = r > 0
-                    transition = Transition(s, action, s1, r, done)
-                    self._memory.push(transition)
+                    if len(action[-1]) > 0:
+                        transition = Transition(s, action_index, s1, r, done)
+                        self._memory.push(transition)
 
                 print(f'Total frames: {total_frames}')
         finally:
@@ -121,7 +128,7 @@ def run_thread(map_name, visualize):
 
 
 def main(unused_argument):
-    map_names = ["DefeatRoaches"]
+    map_names = ['DefeatRoachesAntiSuicide', 'DefeatRoachesAntiSuicideMarineDeath0', 'DefeatRoaches']
     for map_name in map_names:
         get = lib.get(map_name)
         maps.get(map_name)

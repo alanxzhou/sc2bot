@@ -32,12 +32,13 @@ flags.DEFINE_enum("difficulty", None, [str(i) for i in list(sc2_env.Difficulty)]
 flags.DEFINE_bool("profile", False, "Whether to turn on code profiling.")
 flags.DEFINE_bool("trace", False, "Whether to trace the code execution.")
 flags.DEFINE_integer("parallel", 1, "How many instances to run in parallel.")
-flags.DEFINE_bool("load_weights", False, "Whether or not to load waits from previous training session")
-flags.DEFINE_string("load_file", f'./data/DefeatRoachesAntiSuicide/5000eps_64res', "file to load params from")
+flags.DEFINE_bool("load_checkpoint", True, "Whether or not to load checkpoint from previous training session")
+flags.DEFINE_bool("load_params", False, "Whether or not to load parameters from previous training session")
+flags.DEFINE_string("load_file", f'./data/DefeatRoachesAntiSuicideMarineDeath0pretrain_1000', "file to load params from")
 
 flags.DEFINE_integer("max_episodes", 5000, "Maximum number of episodes to train on")
 # flags.DEFINE_string("map", "MoveToBeacon", "Name of a map to use.")
-flags.DEFINE_string("map", "DefeatRoachesAntiSuicide", "Name of a map to use.")
+flags.DEFINE_string("map", "DefeatRoachesAntiSuicideMarineDeath0", "Name of a map to use.")
 # flags.DEFINE_string("map", "DefeatZerglingsAndBanelings", "Name of a map to use")
 flags.mark_flag_as_required("map")
 
@@ -55,10 +56,10 @@ def run_thread(map_name, visualize):
                                                        minimap=FLAGS.minimap_resolution)),
             visualize=visualize) as env:
         env = available_actions_printer.AvailableActionsPrinter(env)
-        if FLAGS.load_weights:
+        if FLAGS.load_checkpoint:
             agent = agent_selector(FLAGS.agent, FLAGS.load_file)
             # agent = Agent(save_name=FLAGS.load_file)
-            agent.load_model_checkpoint()
+            agent.load_model_checkpoint(load_params=FLAGS.load_params)
         else:
             save_name = f'./data/{FLAGS.map}/{FLAGS.max_episodes}eps_{FLAGS.agent}'
             agent = agent_selector(FLAGS.agent, save_name)
