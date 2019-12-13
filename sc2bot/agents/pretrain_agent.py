@@ -21,6 +21,12 @@ class BattleAgentPretrained(BattleAgent):
         start_time = time.time()
         for i in range(iterations):
             if i % 500 == 0:
+                if i > 1:
+                    for key in self._Qt.state_dict():
+                        try:
+                            print(sum(self._Qt.state_dict()[key] - self._Q.state_dict()[key]))
+                        except TypeError as e:
+                            print(e)
                 self._Qt = copy.deepcopy(self._Q)
             print(f'Training iteration {i}...', )
             self.train_q(squeeze=True)
@@ -55,7 +61,8 @@ class BattleAgentPretrained(BattleAgent):
         y = r + done * self.gamma * Qt.gather(1, best_action)
         # y = r + done * self.gamma * Qt.max(dim=1)[0].unsqueeze(1)
 
-        # y.volatile = False
+        temp_state_dict = self._Q.state_dict()
+
         # with y.no_grad():
         loss = self._criterion(Q, y)
         self.loss.append(loss.sum().cpu().data.numpy())
@@ -63,6 +70,8 @@ class BattleAgentPretrained(BattleAgent):
         self._optimizer.zero_grad()  # zero the gradient buffers
         loss.backward()
         self._optimizer.step()
+
+        pass
 
 
 if __name__ == '__main__':

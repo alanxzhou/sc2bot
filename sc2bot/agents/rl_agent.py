@@ -52,8 +52,8 @@ class BaseRLAgent(BaseAgent, ABC):
         self._criterion = nn.MSELoss()
         self._memory = ReplayMemory(100000)
 
-        self._loss = deque(maxlen=1000)
-        self._max_q = deque(maxlen=1000)
+        self._loss = deque(maxlen=int(1e5))
+        self._max_q = deque(maxlen=int(1e5))
         self.loss = []
         self.max_q = []
         self.reward = []

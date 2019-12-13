@@ -52,15 +52,20 @@ class FeatureCNNFCBig(nn.Module):
     def __init__(self, n_features, screen_size=64):
         super(FeatureCNNFCBig, self).__init__()
         self.conv1 = nn.Conv2d(n_features, 12, kernel_size=3, stride=1, padding=1)
+        self.batchnorm1 = nn.BatchNorm2d(12)
         self.conv2 = nn.Conv2d(12, 12, kernel_size=3, stride=1, padding=1)
+        self.batchnorm2 = nn.BatchNorm2d(12)
         self.conv3 = nn.Conv2d(12, 1, kernel_size=3, stride=1, padding=1)
         self.fc1 = nn.Linear(screen_size ** 2, screen_size ** 2)
+        self.dropout1 = nn.Dropout(p=0.5)
         self.fc2 = nn.Linear(screen_size ** 2, screen_size ** 2)
         self.name = f'FeatureCNNFCBig{n_features}'
 
     def forward(self, x):
         x = F.relu(self.conv1(x))
+        x = self.batchnorm1(x)
         x = F.relu(self.conv2(x))
+        x = self.batchnorm2(x)
         x = F.relu(self.conv3(x))
         x = x.view(-1, 64 ** 2)
         x = F.relu(self.fc1(x))

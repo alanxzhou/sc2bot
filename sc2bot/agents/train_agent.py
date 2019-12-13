@@ -36,7 +36,7 @@ flags.DEFINE_bool("load_checkpoint", False, "Whether or not to load checkpoint f
 flags.DEFINE_bool("load_params", False, "Whether or not to load parameters from previous training session")
 flags.DEFINE_string("load_file", f'./data/DefeatRoachesAntiSuicideMarineDeath0_pretrain_10000', "file to load params from")
 
-flags.DEFINE_integer("max_episodes", 5000, "Maximum number of episodes to train on")
+flags.DEFINE_integer("max_episodes", 10000, "Maximum number of episodes to train on")
 # flags.DEFINE_string("map", "MoveToBeacon", "Name of a map to use.")
 flags.DEFINE_string("map", "DefeatRoachesAntiSuicideMarineDeath0", "Name of a map to use.")
 # flags.DEFINE_string("map", "DefeatZerglingsAndBanelings", "Name of a map to use")
