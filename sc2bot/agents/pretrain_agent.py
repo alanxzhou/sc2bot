@@ -13,7 +13,7 @@ class BattleAgentPretrained(BattleAgent):
     def __init__(self, save_name):
         super(BattleAgentPretrained, self).__init__(save_name=save_name)
 
-    def pretrain(self, memory_pretrained_fn, batch_size=512, iterations=50000):
+    def pretrain(self, memory_pretrained_fn, batch_size=512, iterations=int(1e4)):
         memory_pretrained = pickle.load(open(memory_pretrained_fn, 'rb'))
         self._memory = ReplayMemory(len(memory_pretrained))
         self._memory.memory = memory_pretrained
@@ -27,52 +27,42 @@ class BattleAgentPretrained(BattleAgent):
         end_time = time.time()
         print(f'Training completed. Took {start_time - end_time} seconds')
         torch.save(self._Q.state_dict(), f'{self.save_name}_{iterations}.pth')
+        pickle.dump(self.loss, open(f'{self.save_name}_loss_{iterations}.pkl', 'wb'))
 
-    # def train_q(self, squeeze=True):
-    #     if self.train_q_batch_size >= len(self._memory):
-    #         return
-    #
-    #     s, a, s_1, r, done = self._memory.sample(self.train_q_batch_size)
-    #     s = torch.from_numpy(s).cuda().float()
-    #     a = torch.from_numpy(a).cuda().long().unsqueeze(1)
-    #     s_1 = torch.from_numpy(s_1).cuda().float()
-    #     r = torch.from_numpy(r).cuda().float()
-    #     done = torch.from_numpy(1 - done).cuda().float()
-    #
-    #     if squeeze:
-    #         s = s.squeeze()
-    #         s_1 = s_1.squeeze()
-    #
-    #     Q = self._Q(s).view(self.train_q_batch_size, -1)
-    #     Q = Q.gather(1, a)
-    #
-    #     Qt = self._Qt(s_1).view(self.train_q_batch_size, -1)
-    #
-    #     # double Q
-    #     best_action = self._Q(s_1).view(self.train_q_batch_size, -1).max(dim=1, keepdim=True)[1]
-    #     y = r + done * self.gamma * Qt.gather(1, best_action)
-    #
-    #     # with y.no_grad():
-    #
-    #     # action = Q.cpu().detach()
-    #     # action = action.numpy()
-    #     # action = np.unravel_index(action, [self._screen_size, self._screen_size])
-    #     # true_action = a.cpu().detach()
-    #     # true_action = true_action.numpy()
-    #     # true_action = np.unravel_index(true_action, [self._screen_size, self._screen_size])
-    #     action_rows = Q / self._screen_size
-    #     action_columns = Q % self._screen_size
-    #     true_action_rows = Q / self._screen_size
-    #     true_action_columns = Q % self._screen_size
-    #     action = torch.from_numpy(np.unravel_index(Q, [self._screen_size, self._screen_size]))
-    #     true_action = torch.from_numpy(np.unravel_index(a, [self._screen_size, self._screen_size]))
-    #     target = np.array([action[2], action[1]])
-    #     loss = self._criterion(action, true_action)
-    #     self._loss.append(loss.sum().cpu().data.numpy())
-    #     self._max_q.append(Q.max().cpu().data.numpy().reshape(-1)[0])
-    #     self._optimizer.zero_grad()  # zero the gradient buffers
-    #     loss.backward()
-    #     self._optimizer.step()
+    def train_q(self, squeeze=False):
+        if self.train_q_batch_size >= len(self._memory):
+            return
+
+        s, a, s_1, r, done = self._memory.sample(self.train_q_batch_size)
+        s = torch.from_numpy(s).cuda().float()
+        a = torch.from_numpy(a).cuda().long().unsqueeze(1)
+        s_1 = torch.from_numpy(s_1).cuda().float()
+        r = torch.from_numpy(r).cuda().float()
+        done = torch.from_numpy(1 - done).cuda().float()
+
+        if squeeze:
+            s = s.squeeze()
+            s_1 = s_1.squeeze()
+
+        # Q_sa = r + gamma * max(Q_s'a')
+        Q = self._Q(s).view(self.train_q_batch_size, -1)
+        Q = Q.gather(1, a)
+
+        Qt = self._Qt(s_1).view(self.train_q_batch_size, -1)
+
+        # double Q
+        best_action = self._Q(s_1).view(self.train_q_batch_size, -1).max(dim=1, keepdim=True)[1]
+        y = r + done * self.gamma * Qt.gather(1, best_action)
+        # y = r + done * self.gamma * Qt.max(dim=1)[0].unsqueeze(1)
+
+        # y.volatile = False
+        # with y.no_grad():
+        loss = self._criterion(Q, y)
+        self.loss.append(loss.sum().cpu().data.numpy())
+        self._max_q.append(Q.max().cpu().data.numpy().reshape(-1)[0])
+        self._optimizer.zero_grad()  # zero the gradient buffers
+        loss.backward()
+        self._optimizer.step()
 
 
 if __name__ == '__main__':

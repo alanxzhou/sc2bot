@@ -23,7 +23,7 @@ flags.DEFINE_integer("minimap_resolution", 32,
 flags.DEFINE_integer("game_steps_per_episode", 0, "Game steps per episode.")
 flags.DEFINE_integer("step_mul", 8, "Game steps per agent step.")
 
-flags.DEFINE_string("agent", "BattleAgent", "Which agent to run")
+flags.DEFINE_string("agent", "BattleAgentLimited", "Which agent to run")
 flags.DEFINE_enum("agent_race", None, [str(i) for i in list(sc2_env.Race)], "Agent's race.")
 flags.DEFINE_enum("bot_race", None, [str(i) for i in list(sc2_env.Race)], "Bot's race.")
 flags.DEFINE_enum("difficulty", None, [str(i) for i in list(sc2_env.Difficulty)],
@@ -32,9 +32,9 @@ flags.DEFINE_enum("difficulty", None, [str(i) for i in list(sc2_env.Difficulty)]
 flags.DEFINE_bool("profile", False, "Whether to turn on code profiling.")
 flags.DEFINE_bool("trace", False, "Whether to trace the code execution.")
 flags.DEFINE_integer("parallel", 1, "How many instances to run in parallel.")
-flags.DEFINE_bool("load_checkpoint", True, "Whether or not to load checkpoint from previous training session")
+flags.DEFINE_bool("load_checkpoint", False, "Whether or not to load checkpoint from previous training session")
 flags.DEFINE_bool("load_params", False, "Whether or not to load parameters from previous training session")
-flags.DEFINE_string("load_file", f'./data/DefeatRoachesAntiSuicideMarineDeath0pretrain_1000', "file to load params from")
+flags.DEFINE_string("load_file", f'./data/DefeatRoachesAntiSuicideMarineDeath0_pretrain_10000', "file to load params from")
 
 flags.DEFINE_integer("max_episodes", 5000, "Maximum number of episodes to train on")
 # flags.DEFINE_string("map", "MoveToBeacon", "Name of a map to use.")

@@ -86,9 +86,13 @@ class BattleAgent(BaseRLAgent):
 
                     action = self.get_action(s, unsqueeze=False)
                     env_actions = self.get_env_action(action, obs, command=_ATTACK_SCREEN)
-                    obs = env.step([env_actions])[0]
-
-                    r = obs.reward
+                    try:
+                        obs = env.step([env_actions])[0]
+                        r = obs.reward - 0.1
+                    except ValueError as e:
+                        print(e)
+                        obs = env.step([actions.FunctionCall(_NO_OP, [])])[0]
+                        r = obs.reward - 1000
                     episode_reward += r
                     s1 = np.expand_dims(obs.observation["feature_screen"][self.features], 0)
                     done = r > 0
@@ -138,7 +142,7 @@ class BattleAgentLimited(BattleAgent):
         super(BattleAgentLimited, self).__init__(save_name=save_name)
         self.steps_before_training = 256
         self.features = [_PLAYER_RELATIVE, _UNIT_TYPE, _UNIT_HIT_POINTS]
-        self.radius = 10
+        self.radius = 15
         self.initialize_model(FeatureCNNFCLimited(len(self.features), self.radius, screen_size=64))
 
     def get_action(self, s, unsqueeze=True):
@@ -159,15 +163,17 @@ class BattleAgentLimited(BattleAgent):
 
     def get_env_action(self, action, obs, command=_MOVE_SCREEN):
         relative_action = np.unravel_index(action, [self.radius, self.radius])
-        y, x = (obs.observation["feature_screen"][_PLAYER_RELATIVE] == _PLAYER_FRIENDLY).nonzero()
-        if len(x) > 0:
-            action = [int(relative_action[1] - self.radius/2 + round(x.mean())),
-                      int(relative_action[0] - self.radius/2 + round(y.mean()))]
-            friendly_coordinates = np.vstack((x, y)).T
+        y_friendly, x_friendly = (obs.observation["feature_screen"][_PLAYER_RELATIVE] == _PLAYER_FRIENDLY).nonzero()
+        y_enemy, x_enemy = (obs.observation["feature_screen"][_PLAYER_RELATIVE] == _PLAYER_HOSTILE).nonzero()
+        if len(x_friendly) > 0:
+            action = [int(relative_action[1] - self.radius/2 + round(x_friendly.mean())),
+                      int(relative_action[0] - self.radius/2 + round(y_friendly.mean()))]
+            friendly_coordinates = np.vstack((x_friendly, y_friendly)).T
             if bool(np.sum(np.all(action == friendly_coordinates, axis=1))):
                 command = _MOVE_SCREEN
         else:
-            action = [int(relative_action[1] - self.radius/2), int(relative_action[0] - self.radius/2)]
+            # action = [int(relative_action[1] - self.radius/2), int(relative_action[0] - self.radius/2)]
+            return actions.FunctionCall(_NO_OP, [])
         if command in obs.observation["available_actions"]:
             return actions.FunctionCall(command, [[0], action])
         else:
@@ -175,16 +181,16 @@ class BattleAgentLimited(BattleAgent):
 
     # def get_env_action(self, action, obs, command=_MOVE_SCREEN):
     #     action = np.unravel_index(action, [self.army_reachable, self.army_reachable])
-    #     y, x = (obs.observation["feature_screen"][_PLAYER_RELATIVE] == _PLAYER_FRIENDLY).nonzero()
-    #     target = [int(action[1] - self.army_reachable/2 + round(x.mean())),
-    #               int(action[0] - self.army_reachable/2 + round(y.mean()))]
+    #     y_friendly, x_friendly = (obs.observation["feature_screen"][_PLAYER_RELATIVE] == _PLAYER_FRIENDLY).nonzero()
+    #     target = [int(action[1] - self.army_reachable/2 + round(x_friendly.mean())),
+    #               int(action[0] - self.army_reachable/2 + round(y_friendly.mean()))]
     #     print('step')
     #     print(action[1], action[0])
-    #     print(round(x.mean()), round(y.mean()), target[0], target[1])
-    #     # target = [round(x.mean()), round(y.mean())]
+    #     print(round(x_friendly.mean()), round(y_friendly.mean()), target[0], target[1])
+    #     # target = [round(x_friendly.mean()), round(y_friendly.mean())]
     #     # command = _MOVE_SCREEN  # action[0]   # removing unit selection out of the equation
     #     z = np.array(target)
-    #     friendly_coordinates = np.vstack((x, y)).T
+    #     friendly_coordinates = np.vstack((x_friendly, y_friendly)).T
     #     if bool(np.sum(np.all(z == friendly_coordinates, axis=1))):
     #         print('no action taken because we would attack our own unit')
     #         return actions.FunctionCall(_NO_OP, [])
