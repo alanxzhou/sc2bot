@@ -23,7 +23,7 @@ flags.DEFINE_integer("minimap_resolution", 32,
 flags.DEFINE_integer("game_steps_per_episode", 0, "Game steps per episode.")
 flags.DEFINE_integer("step_mul", 8, "Game steps per agent step.")
 
-flags.DEFINE_string("agent", "BattleAgentLimited", "Which agent to run")
+flags.DEFINE_string("agent", "BattleAgent", "Which agent to run")
 flags.DEFINE_enum("agent_race", None, [str(i) for i in list(sc2_env.Race)], "Agent's race.")
 flags.DEFINE_enum("bot_race", None, [str(i) for i in list(sc2_env.Race)], "Bot's race.")
 flags.DEFINE_enum("difficulty", None, [str(i) for i in list(sc2_env.Difficulty)],
