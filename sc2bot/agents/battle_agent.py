@@ -49,6 +49,7 @@ class BattleAgent(BaseRLAgent):
         self.steps_before_training = 5000
         self.obs = None
         self.features = [_PLAYER_RELATIVE, _UNIT_TYPE, _UNIT_HIT_POINTS]
+        self.train_q_per_step = 1
 
     def run_loop(self, env, max_frames=0, max_episodes=10000, save_checkpoints=500, evaluate_checkpoints=10):
         """A run loop to have agents and an environment interact."""
@@ -164,12 +165,14 @@ class BattleAgentLimited(BattleAgent):
     def get_env_action(self, action, obs, command=_MOVE_SCREEN):
         relative_action = np.unravel_index(action, [self.radius, self.radius])
         y_friendly, x_friendly = (obs.observation["feature_screen"][_PLAYER_RELATIVE] == _PLAYER_FRIENDLY).nonzero()
-        y_enemy, x_enemy = (obs.observation["feature_screen"][_PLAYER_RELATIVE] == _PLAYER_HOSTILE).nonzero()
+        # y_enemy, x_enemy = (obs.observation["feature_screen"][_PLAYER_RELATIVE] == _PLAYER_HOSTILE).nonzero()
         if len(x_friendly) > 0:
             action = [int(relative_action[1] - self.radius/2 + round(x_friendly.mean())),
                       int(relative_action[0] - self.radius/2 + round(y_friendly.mean()))]
             friendly_coordinates = np.vstack((x_friendly, y_friendly)).T
             if bool(np.sum(np.all(action == friendly_coordinates, axis=1))):
+                command = _MOVE_SCREEN
+            elif abs(sum(action)) < 2:
                 command = _MOVE_SCREEN
         else:
             # action = [int(relative_action[1] - self.radius/2), int(relative_action[0] - self.radius/2)]
