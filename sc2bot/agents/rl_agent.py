@@ -42,7 +42,7 @@ class BaseRLAgent(BaseAgent, ABC):
         self.gamma = 0.99
         self.train_q_per_step = 4
         self.train_q_batch_size = 256
-        self.steps_before_training = 10000
+        self.steps_before_training = 5000
         self.target_q_update_frequency = 10000
 
         self.save_name = save_name

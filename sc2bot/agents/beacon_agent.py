@@ -11,7 +11,7 @@ import torch.nn as nn
 import torch.optim as optim
 
 from sc2bot.agents.rl_agent import BaseRLAgent
-from sc2bot.models.nn_models import BeaconCNN
+from sc2bot.models.nn_models import BeaconCNN, BeaconCNN2
 from sc2bot.utils.epsilon import Epsilon
 from sc2bot.utils.replay_memory import ReplayMemory, Transition
 
@@ -37,7 +37,7 @@ class BeaconAgent(BaseRLAgent):
 
     def __init__(self, save_name=''):
         super(BeaconAgent, self).__init__(save_name=save_name)
-        self.initialize_model(BeaconCNN())
+        self.initialize_model(BeaconCNN2())
         self.features = 5
 
     @staticmethod
