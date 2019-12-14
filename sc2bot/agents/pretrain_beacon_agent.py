@@ -13,7 +13,7 @@ class BeaconAgentPretrained(BeaconAgent):
     def __init__(self, save_name):
         super(BeaconAgentPretrained, self).__init__(save_name=save_name)
 
-    def pretrain(self, memory_pretrained_fn, batch_size=512, iterations=int(1e4)):
+    def pretrain(self, memory_pretrained_fn, batch_size=512, iterations=int(1e5)):
         memory_pretrained = pickle.load(open(memory_pretrained_fn, 'rb'))
         self._memory = ReplayMemory(len(memory_pretrained))
         self._memory.memory = memory_pretrained
@@ -21,15 +21,18 @@ class BeaconAgentPretrained(BeaconAgent):
         start_time = time.time()
         for i in range(iterations):
             if i % 500 == 0:
-                if i > 1:
-                    for key in self._Qt.state_dict():
-                        try:
-                            print(sum(self._Qt.state_dict()[key] - self._Q.state_dict()[key]))
-                        except TypeError as e:
-                            print(e)
+                # if i > 1:
+                #     for key in self._Qt.state_dict():
+                #         try:
+                #             print(sum(self._Qt.state_dict()[key] - self._Q.state_dict()[key]))
+                #         except TypeError as e:
+                #             print(e)
                 self._Qt = copy.deepcopy(self._Q)
             print(f'Training iteration {i}...', )
             self.train_q(squeeze=False)
+            if i % 10000 == 0:
+                torch.save(self._Q.state_dict(), f'{self.save_name}_{i}.pth')
+                pickle.dump(self.loss, open(f'{self.save_name}_loss_{i}.pkl', 'wb'))
         end_time = time.time()
         print(f'Training completed. Took {start_time - end_time} seconds')
         torch.save(self._Q.state_dict(), f'{self.save_name}_{iterations}.pth')
