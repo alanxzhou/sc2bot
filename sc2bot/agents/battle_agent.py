@@ -45,7 +45,7 @@ class BattleAgent(BaseRLAgent):
 
     def __init__(self, save_name=None):
         super(BattleAgent, self).__init__(save_name=save_name)
-        self.initialize_model(FeatureCNNFCBig(3))
+        self.initialize_model(FeatureCNNFCBig(3, screen_size=self._screen_size))
         self.steps_before_training = 5000
         self.obs = None
         self.features = [_PLAYER_RELATIVE, _UNIT_TYPE, _UNIT_HIT_POINTS]

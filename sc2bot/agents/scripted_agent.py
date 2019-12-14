@@ -38,7 +38,7 @@ class BattleAgentScripted(BaseAgent):
         self.obs = None
         self.features = [_PLAYER_RELATIVE, _UNIT_TYPE, _UNIT_HIT_POINTS]
         self.mapname = mapname
-        self.screen_size = 64
+        self.screen_size = 32
 
     def get_action(self, obs):
         if FUNCTIONS.Attack_screen.id in obs.observation.available_actions:
@@ -80,7 +80,7 @@ class BattleAgentScripted(BaseAgent):
                     s = np.expand_dims(self.obs, 0)
 
                     if total_frames >= self.max_frames:
-                        pickle.dump(self._memory.memory, open(f'./data/{self.mapname}/scripted_replaymemory.pkl', 'wb'))
+                        pickle.dump(self._memory.memory, open(f'./data/{self.mapname}/scripted_replaymemory_res{self.screen_size}.pkl', 'wb'))
                         print("max frames reached")
                         return
                     if obs.last():
@@ -119,7 +119,7 @@ def run_thread(map_name, visualize):
             step_mul=8,
             game_steps_per_episode=0,
             agent_interface_format=features.AgentInterfaceFormat(
-                feature_dimensions=features.Dimensions(screen=64,
+                feature_dimensions=features.Dimensions(screen=32,
                                                        minimap=32)),
             visualize=visualize) as env:
         env = available_actions_printer.AvailableActionsPrinter(env)

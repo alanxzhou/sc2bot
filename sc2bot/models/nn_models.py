@@ -14,9 +14,9 @@ class BeaconCNN(nn.Module):
     """
     def __init__(self, *args):
         super(BeaconCNN, self).__init__()
-        self.conv1 = nn.Conv2d(1, 24, kernel_size=3, stride=1, padding=1)
-        self.conv2 = nn.Conv2d(24, 24, kernel_size=3, stride=1, padding=2, dilation=2)
-        self.conv3 = nn.Conv2d(24, 1, kernel_size=3, stride=1, padding=4, dilation=4)
+        self.conv1 = nn.Conv2d(1, 24, kernel_size=2, stride=1, padding=1)
+        self.conv2 = nn.Conv2d(24, 24, kernel_size=2, stride=1, padding=2, dilation=2)
+        self.conv3 = nn.Conv2d(24, 1, kernel_size=2, stride=1, padding=4, dilation=4)
         self.name = 'BeaconCNN'
 
     def forward(self, x):
@@ -51,6 +51,7 @@ class FeatureCNNFCBig(nn.Module):
     """
     def __init__(self, n_features, screen_size=64):
         super(FeatureCNNFCBig, self).__init__()
+
         self.conv1 = nn.Conv2d(n_features, 12, kernel_size=3, stride=1, padding=1)
         self.batchnorm1 = nn.BatchNorm2d(12)
         self.conv2 = nn.Conv2d(12, 12, kernel_size=3, stride=1, padding=1)
