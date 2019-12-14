@@ -36,7 +36,7 @@ _SELECT_POINT = actions.FUNCTIONS.select_point.id
 class BeaconAgent(BaseRLAgent):
 
     def __init__(self, save_name=None, load_name=None):
-        super(BeaconAgent, self).__init__(save_name=save_name, load_name=None)
+        super(BeaconAgent, self).__init__(save_name=save_name, load_name=load_name)
         self.initialize_model(BeaconCNN2())
         self.features = 5
         self.train_q_per_step = 4
