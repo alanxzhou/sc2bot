@@ -35,7 +35,7 @@ flags.DEFINE_bool("trace", False, "Whether to trace the code execution.")
 flags.DEFINE_integer("parallel", 1, "How many instances to run in parallel.")
 flags.DEFINE_bool("load_checkpoint", False, "Whether or not to load checkpoint from previous training session")
 flags.DEFINE_bool("load_params", False, "Whether or not to load parameters from previous training session")
-flags.DEFINE_string("load_file", f'./data/MoveToBeacon/beacon_13149steps_32dim', "file to load params from")
+flags.DEFINE_string("load_file", f'./data/MoveToBeacon/MoveToBeacon_pretrain_10000', "file to load params from")
 
 flags.DEFINE_integer("max_episodes", 5000, "Maximum number of episodes to train on")
 flags.DEFINE_string("map", "MoveToBeacon", "Name of a map to use.")

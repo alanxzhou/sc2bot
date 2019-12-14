@@ -39,6 +39,7 @@ class BeaconAgent(BaseRLAgent):
         super(BeaconAgent, self).__init__(save_name=save_name)
         self.initialize_model(BeaconCNN2())
         self.features = 5
+        self.train_q_per_step = 4
 
     @staticmethod
     def select_friendly_action(obs):
