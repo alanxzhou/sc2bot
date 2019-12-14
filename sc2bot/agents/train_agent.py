@@ -24,7 +24,7 @@ flags.DEFINE_integer("minimap_resolution", 32,
 flags.DEFINE_integer("game_steps_per_episode", 0, "Game steps per episode.")
 flags.DEFINE_integer("step_mul", 8, "Game steps per agent step.")
 
-flags.DEFINE_string("agent", "BeaconAgent", "Which agent to run")
+flags.DEFINE_string("agent", "BattleAgent", "Which agent to run")
 flags.DEFINE_enum("agent_race", None, [str(i) for i in list(sc2_env.Race)], "Agent's race.")
 flags.DEFINE_enum("bot_race", None, [str(i) for i in list(sc2_env.Race)], "Bot's race.")
 flags.DEFINE_enum("difficulty", None, [str(i) for i in list(sc2_env.Difficulty)],
@@ -34,12 +34,12 @@ flags.DEFINE_bool("profile", False, "Whether to turn on code profiling.")
 flags.DEFINE_bool("trace", False, "Whether to trace the code execution.")
 flags.DEFINE_integer("parallel", 1, "How many instances to run in parallel.")
 flags.DEFINE_bool("load_checkpoint", False, "Whether or not to load checkpoint from previous training session")
-flags.DEFINE_bool("load_params", False, "Whether or not to load parameters from previous training session")
-flags.DEFINE_string("load_file", f'./data/MoveToBeacon/MoveToBeacon_pretrain_10000', "file to load params from")
+flags.DEFINE_bool("load_params", True, "Whether or not to load parameters from previous training session")
+flags.DEFINE_string("load_file", f'./data/DefeatRoachesAntiSuicideMarineDeath0/DefeatRoachesAntiSuicideMarineDeath0_pretrain_10000_checkpoint5000', "file to load params from")
 
-flags.DEFINE_integer("max_episodes", 5000, "Maximum number of episodes to train on")
-flags.DEFINE_string("map", "MoveToBeacon", "Name of a map to use.")
-# flags.DEFINE_string("map", "DefeatRoachesAntiSuicideMarineDeath0", "Name of a map to use.")
+flags.DEFINE_integer("max_episodes", 10000, "Maximum number of episodes to train on")
+# flags.DEFINE_string("map", "MoveToBeacon", "Name of a map to use.")
+flags.DEFINE_string("map", "DefeatRoachesAntiSuicideMarineDeath0", "Name of a map to use.")
 # flags.DEFINE_string("map", "DefeatZerglingsAndBanelings", "Name of a map to use")
 flags.mark_flag_as_required("map")
 
@@ -57,13 +57,14 @@ def run_thread(map_name, visualize):
                                                        minimap=FLAGS.minimap_resolution)),
             visualize=visualize) as env:
         env = available_actions_printer.AvailableActionsPrinter(env)
+        save_name = f'./data/{FLAGS.map}/{FLAGS.max_episodes}eps_{FLAGS.agent}'
         if FLAGS.load_checkpoint:
-            agent = agent_selector(FLAGS.agent, FLAGS.load_file)
+            agent = agent_selector(FLAGS.agent, save_name=save_name, load_name=FLAGS.load_file)
             # agent = Agent(save_name=FLAGS.load_file)
             agent.load_model_checkpoint(load_params=FLAGS.load_params)
         else:
-            save_name = f'./data/{FLAGS.map}/{FLAGS.max_episodes}eps_{FLAGS.agent}'
-            agent = agent_selector(FLAGS.agent, save_name)
+            # save_name = f'./data/{FLAGS.map}/{FLAGS.max_episodes}eps_{FLAGS.agent}'
+            agent = agent_selector(FLAGS.agent, save_name=save_name)
             # agent = Agent(save_name=save_name)
         # run_loop([agent], env, FLAGS.max_agent_steps)
         # agent.train(env, FLAGS.train)
@@ -73,13 +74,13 @@ def run_thread(map_name, visualize):
             agent.evaluate(env)
 
 
-def agent_selector(agent_string, save_name):
+def agent_selector(agent_string, save_name=None, load_name=None):
     if agent_string == 'BattleAgentLimited':
-        return BattleAgentLimited(save_name)
+        return BattleAgentLimited(save_name=save_name, load_name=load_name)
     elif agent_string == 'BattleAgent':
-        return BattleAgent(save_name)
+        return BattleAgent(save_name=save_name, load_name=load_name)
     elif agent_string == 'BeaconAgent':
-        return BeaconAgent(save_name)
+        return BeaconAgent(save_name=save_name, load_name=load_name)
 
 
 def main(unused_argv):

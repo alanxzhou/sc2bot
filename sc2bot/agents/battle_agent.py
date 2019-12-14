@@ -43,8 +43,8 @@ class BattleAgent(BaseRLAgent):
     Agent where the entire army is selected
     """
 
-    def __init__(self, save_name=None):
-        super(BattleAgent, self).__init__(save_name=save_name)
+    def __init__(self, save_name=None, load_name=None):
+        super(BattleAgent, self).__init__(save_name=save_name, load_name=load_name)
         self.initialize_model(FeatureCNNFCBig(3, screen_size=self._screen_size))
         self.steps_before_training = 5000
         self.obs = None
@@ -89,7 +89,7 @@ class BattleAgent(BaseRLAgent):
                     env_actions = self.get_env_action(action, obs, command=_ATTACK_SCREEN)
                     try:
                         obs = env.step([env_actions])[0]
-                        r = obs.reward - 0.1
+                        r = obs.reward - 10
                     except ValueError as e:
                         print(e)
                         obs = env.step([actions.FunctionCall(_NO_OP, [])])[0]
@@ -139,8 +139,8 @@ class BattleAgent(BaseRLAgent):
 
 class BattleAgentLimited(BattleAgent):
 
-    def __init__(self, save_name):
-        super(BattleAgentLimited, self).__init__(save_name=save_name)
+    def __init__(self, save_name=None, load_name=None):
+        super(BattleAgentLimited, self).__init__(save_name=save_name, load_name=None)
         self.steps_before_training = 256
         self.features = [_PLAYER_RELATIVE, _UNIT_TYPE, _UNIT_HIT_POINTS]
         self.radius = 15

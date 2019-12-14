@@ -80,6 +80,7 @@ class FeatureCNNFCBig(nn.Module):
         self.dropout1 = nn.Dropout(p=0.5)
         self.fc2 = nn.Linear(screen_size ** 2, screen_size ** 2)
         self.name = f'FeatureCNNFCBig{n_features}'
+        self.screen_size = screen_size
 
     def forward(self, x):
         x = F.relu(self.conv1(x))
@@ -87,7 +88,7 @@ class FeatureCNNFCBig(nn.Module):
         x = F.relu(self.conv2(x))
         x = self.batchnorm2(x)
         x = F.relu(self.conv3(x))
-        x = x.view(-1, 64 ** 2)
+        x = x.view(-1, self.screen_size ** 2)
         x = F.relu(self.fc1(x))
         x = self.fc2(x)
         return x

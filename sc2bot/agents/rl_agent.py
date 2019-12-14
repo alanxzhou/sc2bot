@@ -34,7 +34,7 @@ _SELECT_POINT = actions.FUNCTIONS.select_point.id
 
 class BaseRLAgent(BaseAgent, ABC):
 
-    def __init__(self, save_name='./data/'):
+    def __init__(self, save_name='./data/', load_name=None):
         super(BaseRLAgent, self).__init__()
         self.training = False
         self.max_frames = 10000000
@@ -46,6 +46,10 @@ class BaseRLAgent(BaseAgent, ABC):
         self.target_q_update_frequency = 10000
 
         self.save_name = save_name
+        if load_name is None:
+            self.load_name = self.save_name
+        else:
+            self.load_name = load_name
         self._Q = None
         self._Qt = None
         self._optimizer = None
@@ -71,12 +75,12 @@ class BaseRLAgent(BaseAgent, ABC):
         self._optimizer = optim.Adam(self._Q.parameters(), lr=1e-8)
 
     def load_model_checkpoint(self, load_params=True):
-        self._Q.load_state_dict(torch.load(self.save_name + '.pth'))
+        self._Q.load_state_dict(torch.load(self.load_name + '.pth'))
         for key in self._Q.state_dict():
             print(self._Q.state_dict()[key])
             print(self._Qt.state_dict()[key])
         if load_params:
-            saved_data = pickle.load(open(f'{self.save_name}' + '_data.pkl', 'rb'))
+            saved_data = pickle.load(open(f'{self.load_name}' + '_data.pkl', 'rb'))
             self.loss = saved_data['loss']
             self.max_q = saved_data['max_q']
             self._epsilon._value = saved_data['epsilon']
