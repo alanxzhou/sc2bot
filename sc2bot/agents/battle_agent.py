@@ -139,7 +139,7 @@ class BattleAgent(BaseRLAgent):
 
 class BattleAgentBeacon(BattleAgent):
     def __init__(self, save_name=None, load_name=None):
-        super(BattleAgent, self).__init__(save_name=save_name, load_name=load_name)
+        super(BattleAgentBeacon, self).__init__(save_name=save_name, load_name=load_name)
         self.initialize_model(BeaconCNN2())
         self.features = _PLAYER_RELATIVE
 
