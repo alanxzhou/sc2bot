@@ -13,7 +13,7 @@ class BattleAgentPretrained(BattleAgent):
     def __init__(self, save_name):
         super(BattleAgentPretrained, self).__init__(save_name=save_name)
 
-    def pretrain(self, memory_pretrained_fn, batch_size=512, iterations=int(1e4)):
+    def pretrain(self, memory_pretrained_fn, batch_size=512, iterations=int(1e5)):
         memory_pretrained = pickle.load(open(memory_pretrained_fn, 'rb'))
         self._memory = ReplayMemory(len(memory_pretrained))
         self._memory.memory = memory_pretrained
@@ -28,6 +28,9 @@ class BattleAgentPretrained(BattleAgent):
                         except TypeError as e:
                             print(e)
                 self._Qt = copy.deepcopy(self._Q)
+            if i % 10000 == 0:
+                torch.save(self._Q.state_dict(), f'{self.save_name}_{i}.pth')
+                pickle.dump(self.loss, open(f'{self.save_name}_loss_{i}.pkl', 'wb'))
             print(f'Training iteration {i}...', )
             self.train_q(squeeze=True)
         end_time = time.time()

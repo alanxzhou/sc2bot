@@ -13,7 +13,7 @@ from pysc2.lib import actions
 from pysc2.lib import features
 from sc2bot.utils.epsilon import Epsilon
 from sc2bot.utils.replay_memory import ReplayMemory, Transition
-from sc2bot.models.nn_models import FeatureCNN, FeatureCNNFCLimited, FeatureCNNFCBig
+from sc2bot.models.nn_models import FeatureCNN, FeatureCNNFCLimited, FeatureCNNFCBig, BeaconCNN2
 from sc2bot.agents.rl_agent import BaseRLAgent
 
 import torch
@@ -137,6 +137,13 @@ class BattleAgent(BaseRLAgent):
                 print("Took %.3f seconds for %s steps" % (elapsed_time, total_frames))
 
 
+class BattleAgentBeacon(BattleAgent):
+    def __init__(self, save_name=None, load_name=None):
+        super(BattleAgent, self).__init__(save_name=save_name, load_name=load_name)
+        self.initialize_model(BeaconCNN2())
+        self.features = _PLAYER_RELATIVE
+
+
 class BattleAgentLimited(BattleAgent):
 
     def __init__(self, save_name=None, load_name=None):
@@ -181,27 +188,3 @@ class BattleAgentLimited(BattleAgent):
             return actions.FunctionCall(command, [[0], action])
         else:
             return actions.FunctionCall(_NO_OP, [])
-
-    # def get_env_action(self, action, obs, command=_MOVE_SCREEN):
-    #     action = np.unravel_index(action, [self.army_reachable, self.army_reachable])
-    #     y_friendly, x_friendly = (obs.observation["feature_screen"][_PLAYER_RELATIVE] == _PLAYER_FRIENDLY).nonzero()
-    #     target = [int(action[1] - self.army_reachable/2 + round(x_friendly.mean())),
-    #               int(action[0] - self.army_reachable/2 + round(y_friendly.mean()))]
-    #     print('step')
-    #     print(action[1], action[0])
-    #     print(round(x_friendly.mean()), round(y_friendly.mean()), target[0], target[1])
-    #     # target = [round(x_friendly.mean()), round(y_friendly.mean())]
-    #     # command = _MOVE_SCREEN  # action[0]   # removing unit selection out of the equation
-    #     z = np.array(target)
-    #     friendly_coordinates = np.vstack((x_friendly, y_friendly)).T
-    #     if bool(np.sum(np.all(z == friendly_coordinates, axis=1))):
-    #         print('no action taken because we would attack our own unit')
-    #         return actions.FunctionCall(_NO_OP, [])
-    #
-    #     if command in obs.observation["available_actions"] and target[0] >= 0 and target[1] >= 0:
-    #         # if target
-    #         return actions.FunctionCall(command, [[0], target])
-    #     else:
-    #         return actions.FunctionCall(_NO_OP, [])
-    #         print(command)
-

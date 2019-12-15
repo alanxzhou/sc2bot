@@ -113,7 +113,7 @@ class BaseRLAgent(BaseAgent, ABC):
 
     def evaluate(self, env, max_episodes=10000, load_dict=True):
         if load_dict:
-            self._Q.load_state_dict(torch.load(self.save_name + '.pth'))
+            self.load_model_checkpoint(load_params=False)
         self._epsilon.isTraining = False
         while True:
             self.run_loop(env, self.max_frames, max_episodes=max_episodes, evaluate_checkpoints=0)
