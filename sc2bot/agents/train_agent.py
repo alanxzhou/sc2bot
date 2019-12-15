@@ -33,7 +33,7 @@ flags.DEFINE_enum("difficulty", None, [str(i) for i in list(sc2_env.Difficulty)]
 flags.DEFINE_bool("profile", False, "Whether to turn on code profiling.")
 flags.DEFINE_bool("trace", False, "Whether to trace the code execution.")
 flags.DEFINE_integer("parallel", 1, "How many instances to run in parallel.")
-flags.DEFINE_bool("load_checkpoint", True, "Whether or not to load checkpoint from previous training session")
+flags.DEFINE_bool("load_checkpoint", False, "Whether or not to load checkpoint from previous training session")
 flags.DEFINE_bool("load_params", False, "Whether or not to load parameters from previous training session")
 flags.DEFINE_string("load_file", f'./data/MoveToBeacon_pretrain_100000', "file to load params from")
 
