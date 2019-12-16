@@ -232,10 +232,11 @@ class BattleAgentBeacon(BattleAgent):
 class BattleAgentLimited(BattleAgent):
 
     def __init__(self, save_name=None, load_name=None):
-        super(BattleAgentLimited, self).__init__(save_name=save_name, load_name=None)
+        super(BattleAgentLimited, self).__init__(save_name=save_name, load_name=load_name)
         self.steps_before_training = 256
         self.features = [_PLAYER_RELATIVE, _UNIT_TYPE, _UNIT_HIT_POINTS]
         self.radius = 15
+        self._screen_size = 64
         self.initialize_model(FeatureCNNFCLimited(len(self.features), self.radius, screen_size=64))
 
     def get_action(self, s, unsqueeze=True):

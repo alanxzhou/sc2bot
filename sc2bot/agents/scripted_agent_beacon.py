@@ -79,7 +79,7 @@ class BattleAgentScriptedBeacon(BaseAgent):
                     s = np.expand_dims(self.obs, 0)
 
                     if total_frames >= self.max_frames:
-                        pickle.dump(self._memory.memory, open(f'./agents/data/{self.mapname}/scripted_replaymemory_res{self.screen_size}.pkl', 'wb'))
+                        pickle.dump(self._memory.memory, open(f'./data/{self.mapname}/scripted_replaymemory_res{self.screen_size}.pkl', 'wb'))
                         print("max frames reached")
                         return
                     if obs.last():
