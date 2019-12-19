@@ -4,13 +4,13 @@ sc2bot is a python based package meant to train a deep-learning based reinforcem
 
 # Quick Start
 Clone the reposistory by running the following in your terminal:
-'''
+```
 git clone https://github.com/alanxzhou/sc2bot
-'''
+```
 Then navigate to the sc2bot folder and run
-'''
+```
 
-'''
+```
 
 # StarCraft II
 
