@@ -24,3 +24,4 @@ build/lib/sc2bot/agents/run_beacon_agent.py
 build/lib/sc2bot/agents/rl_agent.py
 build/lib/sc2bot/agents/beacon_agent.py
 build/lib/sc2bot/agents/__init__.py
+sc2bot/agents/test_agents/

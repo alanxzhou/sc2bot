@@ -20,7 +20,6 @@ flags.DEFINE_integer("screen_resolution", 32,
 flags.DEFINE_integer("minimap_resolution", 32,
                      "Resolution for minimap feature layers.")
 
-# flags.DEFINE_integer("max_agent_steps", 2500, "Total agent steps.")
 flags.DEFINE_integer("game_steps_per_episode", 0, "Game steps per episode.")
 flags.DEFINE_integer("step_mul", 8, "Game steps per agent step.")
 
@@ -33,7 +32,7 @@ flags.DEFINE_enum("difficulty", None, [str(i) for i in list(sc2_env.Difficulty)]
 flags.DEFINE_bool("profile", False, "Whether to turn on code profiling.")
 flags.DEFINE_bool("trace", False, "Whether to trace the code execution.")
 flags.DEFINE_integer("parallel", 1, "How many instances to run in parallel.")
-flags.DEFINE_bool("load_checkpoint", True, "Whether or not to load checkpoint from previous training session")
+flags.DEFINE_bool("load_checkpoint", False, "Whether or not to load checkpoint from previous training session")
 flags.DEFINE_bool("load_params", True, "Whether or not to load parameters from previous training session")
 flags.DEFINE_string("load_file", f'./data/DefeatRoachesAntiSuicideMarineDeath0/15000eps_BattleAgent_checkpoint10000', "file to load params from")
 
@@ -66,8 +65,6 @@ def run_thread(map_name, visualize):
             # save_name = f'./data/{FLAGS.map}/{FLAGS.max_episodes}eps_{FLAGS.agent}'
             agent = agent_selector(FLAGS.agent, save_name=save_name)
             # agent = Agent(save_name=save_name)
-        # run_loop([agent], env, FLAGS.max_agent_steps)
-        # agent.train(env, FLAGS.train)
         if FLAGS.train:
             agent.train(env, FLAGS.train,  max_episodes=FLAGS.max_episodes)
         else:

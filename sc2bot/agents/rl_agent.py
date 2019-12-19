@@ -53,6 +53,7 @@ class BaseRLAgent(BaseAgent, ABC):
         self._Q = None
         self._Qt = None
         self._optimizer = None
+        self.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
         self._criterion = nn.MSELoss()
         self._memory = ReplayMemory(100000)
 
@@ -70,8 +71,8 @@ class BaseRLAgent(BaseAgent, ABC):
     def initialize_model(self, model):
         self._Q = model
         self._Qt = copy.deepcopy(self._Q)
-        self._Q.cuda()
-        self._Qt.cuda()
+        self._Q.to(self.device)
+        self._Qt.to(self.device)
         self._optimizer = optim.Adam(self._Q.parameters(), lr=1e-8)
 
     def load_model_checkpoint(self, load_params=True):
@@ -131,7 +132,7 @@ class BaseRLAgent(BaseAgent, ABC):
     def get_action(self, s, unsqueeze=True):
         # greedy
         if np.random.rand() > self._epsilon.value():
-            s = torch.from_numpy(s).cuda()
+            s = torch.from_numpy(s).to(self.device)
             if unsqueeze:
                 s = s.unsqueeze(0).float()
             else:
@@ -150,11 +151,11 @@ class BaseRLAgent(BaseAgent, ABC):
             return
 
         s, a, s_1, r, done = self._memory.sample(self.train_q_batch_size)
-        s = torch.from_numpy(s).cuda().float()
-        a = torch.from_numpy(a).cuda().long().unsqueeze(1)
-        s_1 = torch.from_numpy(s_1).cuda().float()
-        r = torch.from_numpy(r).cuda().float()
-        done = torch.from_numpy(1 - done).cuda().float()
+        s = torch.from_numpy(s).to(self.device).float()
+        a = torch.from_numpy(a).to(self.device).long().unsqueeze(1)
+        s_1 = torch.from_numpy(s_1).to(self.device).float()
+        r = torch.from_numpy(r).to(self.device).float()
+        done = torch.from_numpy(1 - done).to(self.device).float()
 
         if squeeze:
             s = s.squeeze()

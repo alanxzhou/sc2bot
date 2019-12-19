@@ -43,11 +43,11 @@ class BattleAgentPretrained(BattleAgent):
             return
 
         s, a, s_1, r, done = self._memory.sample(self.train_q_batch_size)
-        s = torch.from_numpy(s).cuda().float()
-        a = torch.from_numpy(a).cuda().long().unsqueeze(1)
-        s_1 = torch.from_numpy(s_1).cuda().float()
-        r = torch.from_numpy(r).cuda().float()
-        done = torch.from_numpy(1 - done).cuda().float()
+        s = torch.from_numpy(s).to(self.device).float()
+        a = torch.from_numpy(a).to(self.device).long().unsqueeze(1)
+        s_1 = torch.from_numpy(s_1).to(self.device).float()
+        r = torch.from_numpy(r).to(self.device).float()
+        done = torch.from_numpy(1 - done).to(self.device).float()
 
         if squeeze:
             s = s.squeeze()

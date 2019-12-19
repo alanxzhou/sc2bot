@@ -242,7 +242,7 @@ class BattleAgentLimited(BattleAgent):
     def get_action(self, s, unsqueeze=True):
         # greedy
         if np.random.rand() > self._epsilon.value():
-            s = torch.from_numpy(s).cuda()
+            s = torch.from_numpy(s).to(self.device)
             if unsqueeze:
                 s = s.unsqueeze(0).float()
             else:
