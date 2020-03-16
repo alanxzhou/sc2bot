@@ -35,6 +35,7 @@ flags.DEFINE_integer("parallel", 1, "How many instances to run in parallel.")
 flags.DEFINE_bool("load_checkpoint", False, "Whether or not to load checkpoint from previous training session")
 flags.DEFINE_bool("load_params", False, "Whether or not to load parameters from previous training session")
 flags.DEFINE_string("load_file", f'./data/MoveToBeacon/beacon_13149steps_32dim', "file to load params from")
+flags.DEFINE_string("save_file", '', "file to save params to / load from if not loading from checkpoint")
 
 flags.DEFINE_integer("max_episodes", 10000, "Maximum number of episodes to train on")
 flags.DEFINE_string("map", "MoveToBeacon", "Name of a map to use.")
@@ -56,7 +57,10 @@ def run_thread(map_name, visualize):
                                                        minimap=FLAGS.minimap_resolution)),
             visualize=visualize) as env:
         env = available_actions_printer.AvailableActionsPrinter(env)
-        save_name = f'./data/{FLAGS.map}/{FLAGS.max_episodes}eps_{FLAGS.agent}'
+        if not FLAGS.save_file:
+            save_name = f'./data/{FLAGS.map}/{FLAGS.max_episodes}eps_{FLAGS.agent}'
+        else:
+            save_name = FLAGS.save_file
         if FLAGS.load_checkpoint:
             agent = agent_selector(FLAGS.agent, save_name=save_name, load_name=FLAGS.load_file)
             # agent = Agent(save_name=FLAGS.load_file)
