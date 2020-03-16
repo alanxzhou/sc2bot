@@ -79,8 +79,8 @@ class BattleAgentPretrained(BattleAgent):
 
 if __name__ == '__main__':
     path = './data/'
-    # mapnames = ['DefeatRoachesAntiSuicide', 'DefeatRoachesAntiSuicideMarineDeath0', 'DefeatRoaches']
-    mapnames = ['DefeatRoachesAntiSuicideMarineDeath0']
+    mapnames = ['DefeatRoachesAntiSuicide', 'DefeatRoachesAntiSuicideMarineDeath0', 'DefeatRoaches']
+    # mapnames = ['DefeatRoachesAntiSuicideMarineDeath0']
     for mapname in mapnames:
         print(mapname)
         save_name = path + mapname + '_pretrain'

@@ -23,7 +23,7 @@ flags.DEFINE_integer("minimap_resolution", 32,
 flags.DEFINE_integer("game_steps_per_episode", 0, "Game steps per episode.")
 flags.DEFINE_integer("step_mul", 8, "Game steps per agent step.")
 
-flags.DEFINE_string("agent", "BattleAgent", "Which agent to run")
+flags.DEFINE_string("agent", "BeaconAgent", "Which agent to run")
 flags.DEFINE_enum("agent_race", None, [str(i) for i in list(sc2_env.Race)], "Agent's race.")
 flags.DEFINE_enum("bot_race", None, [str(i) for i in list(sc2_env.Race)], "Bot's race.")
 flags.DEFINE_enum("difficulty", None, [str(i) for i in list(sc2_env.Difficulty)],
@@ -33,12 +33,12 @@ flags.DEFINE_bool("profile", False, "Whether to turn on code profiling.")
 flags.DEFINE_bool("trace", False, "Whether to trace the code execution.")
 flags.DEFINE_integer("parallel", 1, "How many instances to run in parallel.")
 flags.DEFINE_bool("load_checkpoint", False, "Whether or not to load checkpoint from previous training session")
-flags.DEFINE_bool("load_params", True, "Whether or not to load parameters from previous training session")
-flags.DEFINE_string("load_file", f'./data/DefeatRoachesAntiSuicideMarineDeath0/15000eps_BattleAgent_checkpoint10000', "file to load params from")
+flags.DEFINE_bool("load_params", False, "Whether or not to load parameters from previous training session")
+flags.DEFINE_string("load_file", f'./data/MoveToBeacon/beacon_13149steps_32dim', "file to load params from")
 
-flags.DEFINE_integer("max_episodes", 15000, "Maximum number of episodes to train on")
-# flags.DEFINE_string("map", "MoveToBeacon", "Name of a map to use.")
-flags.DEFINE_string("map", "DefeatRoachesAntiSuicideMarineDeath0", "Name of a map to use.")
+flags.DEFINE_integer("max_episodes", 10000, "Maximum number of episodes to train on")
+flags.DEFINE_string("map", "MoveToBeacon", "Name of a map to use.")
+# flags.DEFINE_string("map", "DefeatRoachesAntiSuicideMarineDeath0", "Name of a map to use.")
 # flags.DEFINE_string("map", "DefeatZerglingsAndBanelings", "Name of a map to use")
 flags.mark_flag_as_required("map")
 
